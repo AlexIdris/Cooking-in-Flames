@@ -4,8 +4,6 @@ public class ClientSpawner : MonoBehaviour
 {
     public GameObject clientPrefab;
     public Transform spawnPoint;
-    public Transform orderPoint;
-
     public float spawnInterval = 5f;
 
     void Start()
@@ -17,7 +15,16 @@ public class ClientSpawner : MonoBehaviour
     {
         GameObject client = Instantiate(clientPrefab, spawnPoint.position, Quaternion.identity);
 
+        Transform freeSpot = QueueManager.Instance.GetFreePoint(client);
+
+        if (freeSpot == null)
+        {
+            Debug.Log("Queue full!");
+            Destroy(client);
+            return;
+        }
+
         ClientMovement movement = client.GetComponent<ClientMovement>();
-        movement.targetPoint = orderPoint;
+        movement.targetPoint = freeSpot;
     }
 }

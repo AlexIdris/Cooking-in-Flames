@@ -8,25 +8,18 @@ public class ClientMovement : MonoBehaviour
     public float bounceHeight = 0.1f;
     public float bounceSpeed = 8f;
 
-    private Vector3 startPos;
-
-    void Start()
-    {
-        startPos = transform.position;
-    }
-
     void Update()
     {
         if (targetPoint == null) return;
 
-        // Move forward
+        // Move toward target
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPoint.position,
             moveSpeed * Time.deltaTime
         );
 
-        // Bounce effect (only while moving)
+        // Bounce effect
         float distance = Vector3.Distance(transform.position, targetPoint.position);
 
         if (distance > 0.05f)
@@ -40,15 +33,7 @@ public class ClientMovement : MonoBehaviour
         }
         else
         {
-            // Snap to exact target when arrived
             transform.position = targetPoint.position;
-            OnArrived();
         }
-    }
-
-    void OnArrived()
-    {
-        Debug.Log("Client reached order point!");
-        enabled = false;
     }
 }
