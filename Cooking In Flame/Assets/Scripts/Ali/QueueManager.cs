@@ -51,17 +51,25 @@ public class QueueManager : MonoBehaviour
     // Shift everyone forward when spots open
     void ShiftQueueForward()
     {
-        for (int i = 0; i < clientsInQueue.Count - 1; i++)
+        for (int i = 0; i < clientsInQueue.Count; i++)
         {
-            if (clientsInQueue[i] == null && clientsInQueue[i + 1] != null)
+            if (clientsInQueue[i] == null)
             {
-                GameObject client = clientsInQueue[i + 1];
-                clientsInQueue[i] = client;
-                clientsInQueue[i + 1] = null;
+                // find next client behind
+                for (int j = i + 1; j < clientsInQueue.Count; j++)
+                {
+                    if (clientsInQueue[j] != null)
+                    {
+                        GameObject client = clientsInQueue[j];
+                        clientsInQueue[i] = client;
+                        clientsInQueue[j] = null;
 
-                // Move client to new queue point
-                ClientMovement move = client.GetComponent<ClientMovement>();
-                move.targetPoint = queuePoints[i];
+                        ClientMovement move = client.GetComponent<ClientMovement>();
+                        move.targetPoint = queuePoints[i];
+
+                        break;
+                    }
+                }
             }
         }
     }

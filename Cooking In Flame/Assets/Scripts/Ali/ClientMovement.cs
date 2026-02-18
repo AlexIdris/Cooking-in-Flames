@@ -19,7 +19,7 @@ public class ClientMovement : MonoBehaviour
             moveSpeed * Time.deltaTime
         );
 
-        // Bounce effect
+        // Calculate distance to target
         float distance = Vector3.Distance(transform.position, targetPoint.position);
 
         if (distance > 0.05f)
@@ -34,6 +34,17 @@ public class ClientMovement : MonoBehaviour
         else
         {
             transform.position = targetPoint.position;
+
+            // If this is the cashier spot (first queue point)
+            if (targetPoint == QueueManager.Instance.queuePoints[0])
+            {
+                CustomerOrder order = GetComponent<CustomerOrder>();
+
+                if (order != null && string.IsNullOrEmpty(order.currentOrder))
+                {
+                    order.AssignOrder();
+                }
+            }
         }
     }
 }
