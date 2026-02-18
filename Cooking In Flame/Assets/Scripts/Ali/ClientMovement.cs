@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ClientMovement : MonoBehaviour
 {
@@ -8,22 +8,30 @@ public class ClientMovement : MonoBehaviour
     public float bounceHeight = 0.1f;
     public float bounceSpeed = 8f;
 
+    private Vector3 previousPosition;
+
+    void Start()
+    {
+        previousPosition = transform.position;
+    }
+
     void Update()
     {
         if (targetPoint == null) return;
 
-        // Move toward target
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            targetPoint.position,
-            moveSpeed * Time.deltaTime
-        );
-
         // Calculate distance to target
         float distance = Vector3.Distance(transform.position, targetPoint.position);
 
-        if (distance > 0.05f)
+        if (distance > 0.01f)
         {
+            // Move toward target
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                targetPoint.position,
+                moveSpeed * Time.deltaTime
+            );
+
+            // Bounce effect only while moving
             float bounce = Mathf.Sin(Time.time * bounceSpeed) * bounceHeight;
             transform.position = new Vector3(
                 transform.position.x,
@@ -33,16 +41,17 @@ public class ClientMovement : MonoBehaviour
         }
         else
         {
+            // Arrived → stop bouncing
             transform.position = targetPoint.position;
 
-            // If this is the cashier spot (first queue point)
-            if (targetPoint == QueueManager.Instance.queuePoints[0])
+            // Assign order when reaching cashier
+            if (QueueManager.Instance != null &&
+                targetPoint == QueueManager.Instance.queuePoints[0]) // first point = cashier
             {
                 CustomerOrder order = GetComponent<CustomerOrder>();
-
                 if (order != null && string.IsNullOrEmpty(order.currentOrder))
                 {
-                    order.AssignOrder();
+                    order.AssignOrder(); // spawn the text above head
                 }
             }
         }

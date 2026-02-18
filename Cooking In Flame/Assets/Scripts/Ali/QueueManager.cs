@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class QueueManager : MonoBehaviour
@@ -55,7 +55,6 @@ public class QueueManager : MonoBehaviour
         {
             if (clientsInQueue[i] == null)
             {
-                // find next client behind
                 for (int j = i + 1; j < clientsInQueue.Count; j++)
                 {
                     if (clientsInQueue[j] != null)
@@ -65,7 +64,7 @@ public class QueueManager : MonoBehaviour
                         clientsInQueue[j] = null;
 
                         ClientMovement move = client.GetComponent<ClientMovement>();
-                        move.targetPoint = queuePoints[i];
+                        move.targetPoint = queuePoints[i]; // ← this is the line that makes customer 2 walk to customer 1’s spot
 
                         break;
                     }
@@ -73,4 +72,5 @@ public class QueueManager : MonoBehaviour
             }
         }
     }
+
 }
