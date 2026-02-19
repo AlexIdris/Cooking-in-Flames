@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class CustomerMover : MonoBehaviour
 {
@@ -12,6 +13,19 @@ public class CustomerMover : MonoBehaviour
     private Vector3 startPos;
     private float journeyLength;
     private float startTime;
+
+    public TextMeshPro orderText;
+
+    string[] possibleOrders = new string[]
+    {
+    "Cheese Burger",
+    "Fries Only",
+    "Chicken Burger",
+    "Fish Nuggets",
+    "Double Burger"
+    };
+
+    bool orderShown = false;
 
     void Start()
     {
@@ -29,6 +43,11 @@ public class CustomerMover : MonoBehaviour
         journeyLength = Vector3.Distance(startPos, targetPoint.position);
 
         transform.localScale = Vector3.one * startScale;
+
+        // Reset order text so it can show again if this customer becomes front
+        orderShown = false;
+        if (orderText != null)
+            orderText.gameObject.SetActive(false);
     }
 
     void Update()
@@ -42,5 +61,25 @@ public class CustomerMover : MonoBehaviour
 
         float scale = Mathf.Lerp(startScale, targetScale, fraction);
         transform.localScale = Vector3.one * scale;
+
+        if (!orderShown && Vector3.Distance(transform.position, targetPoint.position) < 0.1f)
+        {
+            // only show if this customer is at index 0 (front of line)
+            if (targetScale == 4f)
+            {
+                ShowRandomOrder();
+            }
+
+            orderShown = true;
+        }
+    }
+
+    void ShowRandomOrder()
+    {
+        if (orderText == null) return;
+
+        int index = Random.Range(0, possibleOrders.Length);
+        orderText.text = possibleOrders[index];
+        orderText.gameObject.SetActive(true);
     }
 }
