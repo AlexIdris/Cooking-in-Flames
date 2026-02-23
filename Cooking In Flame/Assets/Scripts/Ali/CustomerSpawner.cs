@@ -4,19 +4,15 @@ using System.Collections.Generic;
 public class CustomerSpawner : MonoBehaviour
 {
     public GameObject customerPrefab;
-
     public Transform spawnPoint;
 
-    private List<CustomerMover> customers = new List<CustomerMover>();
-
+    [HideInInspector] public List<CustomerMover> customers = new List<CustomerMover>();
     public Transform[] orderPoints;
     private int nextIndex = 0;
-
 
     void Start()
     {
         InvokeRepeating(nameof(SpawnCustomer), 0f, 5f);
-
     }
 
     void Update()
@@ -26,21 +22,18 @@ public class CustomerSpawner : MonoBehaviour
         {
             customers.RemoveAt(0);
             nextIndex--;
-
             MoveQueueForward();
         }
     }
 
     public void SpawnCustomer()
     {
-            if (nextIndex >= orderPoints.Length) return;
+        if (nextIndex >= orderPoints.Length) return;
 
         GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
         CustomerMover mover = newCustomer.GetComponent<CustomerMover>();
 
-        // calculate scale based on position in line
         float startScale = 2f;
-
         float targetScale;
         switch (nextIndex)
         {
@@ -52,14 +45,10 @@ public class CustomerSpawner : MonoBehaviour
             default: targetScale = 2.3f; break;
         }
 
-
-
         mover.Init(orderPoints[nextIndex], startScale, targetScale);
-
-            customers.Add(mover);
-
-            nextIndex++;
-     }
+        customers.Add(mover);
+        nextIndex++;
+    }
 
     void MoveQueueForward()
     {
@@ -68,7 +57,6 @@ public class CustomerSpawner : MonoBehaviour
             if (customers[i] == null) continue;
 
             float startScale = customers[i].transform.localScale.x;
-
             float targetScale;
             switch (i)
             {
