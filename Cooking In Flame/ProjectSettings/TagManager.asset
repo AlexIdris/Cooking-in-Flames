@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags: []
   layers:
   - Default
@@ -11,11 +11,11 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Pickup
+  - Pickup Layer
+  - Player
+  - Placeable
+  - Held
   - 
   - 
   - 
@@ -41,6 +41,24 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Customers
+    uniqueID: 3631381629
+    locked: 0
+  - name: Table
+    uniqueID: 3500456439
+    locked: 0
+  - name: Pan & Plates
+    uniqueID: 2402977721
+    locked: 0
+  - name: Ingredients
+    uniqueID: 1258744875
+    locked: 0
+  - name: Food
+    uniqueID: 2221724397
+    locked: 0
+  - name: Cursor
+    uniqueID: 1640211663
+    locked: 0
   m_RenderingLayers:
   - Default
   - Light Layer 1
@@ -50,27 +68,3 @@ TagManager:
   - Light Layer 5
   - Light Layer 6
   - Light Layer 7
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
