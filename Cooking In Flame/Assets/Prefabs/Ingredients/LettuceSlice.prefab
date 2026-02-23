@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ingredients
   type: 2
-  stackLayer: 2
+  stackLayer: 1
 --- !u!65 &-5416216872655014238
 BoxCollider:
   m_ObjectHideFlags: 0

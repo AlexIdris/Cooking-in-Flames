@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 public class PlayerHand2D : MonoBehaviour
 {
     [Header("Pickup Settings")]
-    public float holdDistance = 0.8f;           // how far the item floats in front of cursor
-    public LayerMask pickupLayer;               // layer of pickable objects
+    public float holdDistance = 0.8f;
+    public LayerMask pickupLayer;
 
     [Header("Cursor Icon")]
     public Sprite cursorSprite;
@@ -25,12 +25,21 @@ public class PlayerHand2D : MonoBehaviour
     void Awake()
     {
         mainCam = Camera.main;
+
+        if (mainCam == null)
+        {
+            Debug.LogError("[PlayerHand2D] No Camera tagged 'MainCamera' found in scene!", this);
+            enabled = false;
+            return;
+        }
+
         myRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Start()
     {
-        Cursor.visible = false;  // hide default OS cursor
+        // Hide OS mouse cursor
+        Cursor.visible = false;
 
         if (cursorSprite != null && myRenderer != null)
         {
@@ -38,35 +47,50 @@ public class PlayerHand2D : MonoBehaviour
             myRenderer.color = cursorColor;
             transform.localScale = Vector3.one * cursorScale;
         }
+        else
+        {
+            Debug.LogWarning("[PlayerHand2D] No cursor sprite assigned or no SpriteRenderer.");
+        }
+
+        // Debug: Confirm Input System is active
+        if (Mouse.current == null)
+        {
+            Debug.LogError("[PlayerHand2D] Mouse.current is NULL → Input System not active! " +
+                           "Go to Edit → Project Settings → Player → Active Input Handling → 'Input System Package (New)'");
+        }
+        else
+        {
+            Debug.Log("[PlayerHand2D] Input System active. Cursor should now follow mouse.");
+        }
     }
 
     void Update()
     {
-        // Move cursor to mouse position
-        Vector2 mouseWorld = mainCam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        transform.position = mouseWorld;
+        // Safety: skip if no mouse or camera
+        if (Mouse.current == null || mainCam == null) return;
 
-        // Handle hover (glow) only when NOT holding anything
+        // Get mouse position in world space (this is the FIXED line)
+        Vector2 mouseWorldPos = mainCam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+
+        // Move the cursor/hand to mouse position
+        transform.position = mouseWorldPos;
+
+        // Handle hover only if not holding anything
         if (heldItem == null)
         {
-            HandleHover(mouseWorld);
+            HandleHover(mouseWorldPos);
         }
 
-        // ── Hold & Release logic ────────────────────────────────────────────────
-        bool isHoldingButton = Mouse.current.leftButton.isPressed;
-
-        if (isHoldingButton)
+        // Hold/release logic
+        if (Mouse.current.leftButton.isPressed)
         {
-            // While holding button down
             if (heldItem == null && hoveredItem != null)
             {
-                // Start pickup if hovering something valid
                 PickupItem(hoveredItem);
             }
         }
-        else
+        else if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
-            // Button was just released
             if (heldItem != null)
             {
                 DropItem();
@@ -76,7 +100,6 @@ public class PlayerHand2D : MonoBehaviour
 
     private void HandleHover(Vector2 mousePos)
     {
-        // Clear previous hover
         if (hoveredItem != null)
         {
             hoveredItem.SetHovered(false);
@@ -104,35 +127,19 @@ public class PlayerHand2D : MonoBehaviour
         item.transform.localPosition = Vector2.right * holdDistance;
         item.transform.localRotation = Quaternion.identity;
 
-        // Turn off hover glow immediately
         if (hoveredItem == item)
         {
             hoveredItem.SetHovered(false);
             hoveredItem = null;
         }
-
-        Debug.Log($"Picked up: {item.name} (holding LMB)");
     }
 
     private void DropItem()
     {
         if (heldItem == null) return;
 
-        // Drop exactly where cursor is
         heldItem.transform.SetParent(null);
         heldItem.OnDrop();
-
-        Debug.Log($"Dropped {heldItem.name} at cursor position");
-
         heldItem = null;
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        if (heldItem != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, 0.3f);
-        }
     }
 }
