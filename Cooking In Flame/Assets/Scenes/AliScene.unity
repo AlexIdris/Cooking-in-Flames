@@ -872,7 +872,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 802a044f9d768a949af52e359e1675dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner2
-  customerPrefab: {fileID: 2048135426286069369, guid: c71a1e0c650053a47a3fcdfcda288892, type: 3}
+  customerPrefab: {fileID: 2048135426286069369, guid: cc249295ead9cd74cbf7337a82916ca0, type: 3}
   spawnPoint: {fileID: 1412086555}
   customers: []
   orderPoints:

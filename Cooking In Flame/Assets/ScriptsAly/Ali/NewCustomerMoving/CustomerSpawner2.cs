@@ -27,7 +27,23 @@ public class CustomerSpawner2 : MonoBehaviour
             }
         }
 
-        // Clean nulls + shift queue
+        if (customers.Count > 0 && customers[0] != null)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                customers[0].SetFace(1); // happy
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                customers[0].SetFace(2); // sad
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                customers[0].SetFace(3); // normal
+            }
+        }
+
+        // If first customer is destroyed, shift queue
         if (customers.Count > 0 && customers[0] == null)
         {
             customers.RemoveAt(0);
@@ -43,10 +59,11 @@ public class CustomerSpawner2 : MonoBehaviour
         GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
         CustomerMover2 mover = newCustomer.GetComponent<CustomerMover2>();
 
-        float startScale = 2f;
-        float targetScale = GetScaleForIndex(nextIndex);
+        float startMultiplier = 1f;
+        float targetMultiplier = GetScaleForIndex(nextIndex);
 
-        mover.Init(orderPoints[nextIndex], startScale, targetScale);
+        mover.Init(orderPoints[nextIndex], startMultiplier, targetMultiplier);
+
         customers.Add(mover);
         nextIndex++;
     }
@@ -57,10 +74,11 @@ public class CustomerSpawner2 : MonoBehaviour
         {
             if (customers[i] == null) continue;
 
-            float startScale = customers[i].transform.localScale.x;
-            float targetScale = GetScaleForIndex(i);
+            float currentMultiplier = customers[i].transform.localScale.x / customers[i].BaseScale;
 
-            customers[i].Init(orderPoints[i], startScale, targetScale);
+            float targetMultiplier = GetScaleForIndex(i);
+
+            customers[i].Init(orderPoints[i], currentMultiplier, targetMultiplier);
         }
     }
 
@@ -68,12 +86,12 @@ public class CustomerSpawner2 : MonoBehaviour
     {
         switch (i)
         {
-            case 0: return 4f;
-            case 1: return 3.5f;
-            case 2: return 3.2f;
-            case 3: return 2.9f;
-            case 4: return 2.6f;
-            default: return 2.3f;
+            case 0: return 1.4f;  // front (biggest)
+            case 1: return 1.25f;
+            case 2: return 1.15f;
+            case 3: return 1.05f;
+            case 4: return 0.95f;
+            default: return 0.85f;
         }
     }
 }
