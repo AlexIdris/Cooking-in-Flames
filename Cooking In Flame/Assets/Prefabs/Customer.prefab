@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2111128012576390873}
   - component: {fileID: 9217998100986136197}
   - component: {fileID: 6033764873788408798}
+  - component: {fileID: 2875286377326990570}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -101,7 +102,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2048135426286069369}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 968e73c7f3dd4124ea6966d803d9da08, type: 3}
   m_Name: 
@@ -111,6 +112,26 @@ MonoBehaviour:
   startScale: 2
   targetScale: 4
   orderText: {fileID: 4176463075966667298}
+  possibleOrders:
+  - Cheese Burger
+  - Fries Only
+  - Chicken Burger
+  - Fish Nuggets
+  - Double Burger
+--- !u!114 &2875286377326990570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048135426286069369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 313374e7d9ca2c94a90b06b8e4523c95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerMover2
+  moveSpeed: 3
+  scaleSpeed: 2
 --- !u!1 &8209038750752734866
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,7 +240,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7768533016748588763
 RectTransform:
   m_ObjectHideFlags: 0
