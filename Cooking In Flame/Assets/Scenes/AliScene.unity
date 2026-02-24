@@ -874,13 +874,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner2
   customerPrefab: {fileID: 2048135426286069369, guid: cc249295ead9cd74cbf7337a82916ca0, type: 3}
   spawnPoint: {fileID: 1412086555}
-  customers: []
   orderPoints:
   - {fileID: 386483293}
   - {fileID: 1448548842}
   - {fileID: 744885206}
   - {fileID: 509836628}
   - {fileID: 168187556}
+  characters:
+  - characterName: 16
+    normalFace: {fileID: 21300000, guid: e6cb98e78aef3694caf2bb29907d8f07, type: 3}
+    happyFace: {fileID: 21300000, guid: e6cb98e78aef3694caf2bb29907d8f07, type: 3}
+    sadFace: {fileID: 21300000, guid: 719810279cc98ca47b52e16b5d5cc54e, type: 3}
+  - characterName: 21
+    normalFace: {fileID: 21300000, guid: ba252ca5514723b4c9ddeb0e559229c5, type: 3}
+    happyFace: {fileID: 21300000, guid: 6b139d48eccb6ff4c9b392972616f25f, type: 3}
+    sadFace: {fileID: 21300000, guid: 0eac7655234f7704c90a5be2d8a95d17, type: 3}
+  - characterName: 28
+    normalFace: {fileID: 21300000, guid: 32005218f9abae44ba9e32589ff650b1, type: 3}
+    happyFace: {fileID: 21300000, guid: bb0e015c39a2b96459e89f4288326ed6, type: 3}
+    sadFace: {fileID: 21300000, guid: 1373fd390729d0f448b2d800b73f36a7, type: 3}
+  customers: []
 --- !u!4 &1234151961
 Transform:
   m_ObjectHideFlags: 0

@@ -8,31 +8,25 @@ public class CustomerMover2 : MonoBehaviour
 
     private Transform targetPoint;
     private float targetScale;
-
     private bool movingToPoint = false;
     private bool leaving = false;
 
     private Vector3 baseScale;
     public float BaseScale => baseScale.x;
 
-    public Sprite normalFace;
-    public Sprite happyFace;
-    public Sprite sadFace;
+    [HideInInspector] public CustomerSpawner2.CharacterData currentCharacter;
 
     private SpriteRenderer sr;
 
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        if (baseScale == Vector3.zero) baseScale = transform.localScale;
     }
 
     public void Init(Transform newTarget, float startMultiplier, float targetMultiplier)
     {
         targetPoint = newTarget;
-
-        // store original prefab scale ONCE
-        if (baseScale == Vector3.zero)
-            baseScale = transform.localScale;
 
         float startScale = baseScale.x * startMultiplier;
         float endScale = baseScale.x * targetMultiplier;
@@ -72,26 +66,6 @@ public class CustomerMover2 : MonoBehaviour
         }
     }
 
-    public void SetFace(int mood)
-    {
-        if (sr == null) return;
-
-        switch (mood)
-        {
-            case 1:
-                sr.sprite = happyFace;
-                break;
-
-            case 2:
-                sr.sprite = sadFace;
-                break;
-
-            case 3:
-                sr.sprite = normalFace;
-                break;
-        }
-    }
-
     public void LeaveAndDie()
     {
         if (leaving) return;
@@ -106,5 +80,17 @@ public class CustomerMover2 : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         Destroy(gameObject);
+    }
+
+    public void SetFace(int mood)
+    {
+        if (sr == null || currentCharacter == null) return;
+
+        switch (mood)
+        {
+            case 1: sr.sprite = currentCharacter.happyFace; break;
+            case 2: sr.sprite = currentCharacter.sadFace; break;
+            case 3: sr.sprite = currentCharacter.normalFace; break;
+        }
     }
 }
