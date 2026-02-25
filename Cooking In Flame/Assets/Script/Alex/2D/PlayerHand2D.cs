@@ -17,29 +17,35 @@ public class PlayerHand2D : MonoBehaviour
     [Header("Hover Feedback")]
     public float hoverScale = 1.15f;
 
+    [Header("Debug Override (for Scene view gizmo drag during Play)")]
+    [Tooltip("If true, script skips setting position → allows manual drag in Scene view while playing")]
+    public bool manualOverride = false;
+
     private Camera mainCam;
     private SpriteRenderer myRenderer;
     private Pickupable2D heldItem;
     private Pickupable2D hoveredItem;
 
+    // Plane at z = 0 — change this if your sprites are at different Z
+    private Plane interactionPlane = new Plane(Vector3.forward, Vector3.zero);
+
     void Awake()
     {
         mainCam = Camera.main;
+        myRenderer = GetComponent<SpriteRenderer>();
 
         if (mainCam == null)
         {
-            Debug.LogError("[PlayerHand2D] No Camera tagged 'MainCamera' found in scene!", this);
+            Debug.LogError("[PlayerHand2D] No MainCamera tagged 'MainCamera' found!", this);
             enabled = false;
             return;
         }
-
-        myRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Start()
     {
-        // Hide OS mouse cursor
         Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;  // Keeps input inside Game view
 
         if (cursorSprite != null && myRenderer != null)
         {
@@ -47,41 +53,60 @@ public class PlayerHand2D : MonoBehaviour
             myRenderer.color = cursorColor;
             transform.localScale = Vector3.one * cursorScale;
         }
-        else
-        {
-            Debug.LogWarning("[PlayerHand2D] No cursor sprite assigned or no SpriteRenderer.");
-        }
 
-        // Debug: Confirm Input System is active
-        if (Mouse.current == null)
-        {
-            Debug.LogError("[PlayerHand2D] Mouse.current is NULL → Input System not active! " +
-                           "Go to Edit → Project Settings → Player → Active Input Handling → 'Input System Package (New)'");
-        }
-        else
-        {
-            Debug.Log("[PlayerHand2D] Input System active. Cursor should now follow mouse.");
-        }
+        Debug.Log("[PlayerHand2D] Cursor ready. Camera mode: " + 
+                  (mainCam.orthographic ? "Orthographic" : "Perspective"));
     }
 
     void Update()
     {
-        // Safety: skip if no mouse or camera
         if (Mouse.current == null || mainCam == null) return;
 
-        // Get mouse position in world space (this is the FIXED line)
-        Vector2 mouseWorldPos = mainCam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        // ── Get mouse position in screen space ───────────────────────────────
+        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
 
-        // Move the cursor/hand to mouse position
-        transform.position = mouseWorldPos;
+        // ── Convert to world position (works for BOTH Ortho & Perspective) ───
+        Vector3 mouseWorldPos;
 
-        // Handle hover only if not holding anything
+        if (mainCam.orthographic)
+        {
+            // Orthographic: simple direct conversion
+            mouseWorldPos = mainCam.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, mainCam.nearClipPlane));
+            mouseWorldPos.z = 0f; // force to our plane
+        }
+        else
+        {
+            // Perspective: cast ray and intersect with z=0 plane
+            Ray ray = mainCam.ScreenPointToRay(mouseScreenPos);
+            if (interactionPlane.Raycast(ray, out float enter))
+            {
+                mouseWorldPos = ray.GetPoint(enter);
+            }
+            else
+            {
+                // Fallback: use near clip plane (rare)
+                mouseWorldPos = mainCam.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, mainCam.nearClipPlane));
+                mouseWorldPos.z = 0f;
+            }
+        }
+
+        // Apply position (unless debugging with gizmo)
+        if (!manualOverride)
+        {
+            transform.position = mouseWorldPos;
+        }
+
+        // Optional debug log (remove later)
+        // if (Time.frameCount % 60 == 0)
+        //     Debug.Log($"Cursor at world: {mouseWorldPos}");
+
+        // Hover logic only when not holding
         if (heldItem == null)
         {
             HandleHover(mouseWorldPos);
         }
 
-        // Hold/release logic
+        // Hold LMB → pickup if hovering
         if (Mouse.current.leftButton.isPressed)
         {
             if (heldItem == null && hoveredItem != null)
@@ -89,12 +114,20 @@ public class PlayerHand2D : MonoBehaviour
                 PickupItem(hoveredItem);
             }
         }
+        // Release LMB → drop
         else if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
             if (heldItem != null)
             {
                 DropItem();
             }
+        }
+
+        // ESC to unlock cursor for Editor use
+        if (Keyboard.current?.escapeKey.wasPressedThisFrame == true)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
@@ -113,7 +146,7 @@ public class PlayerHand2D : MonoBehaviour
             if (target != null && target.CanBePickedUp())
             {
                 hoveredItem = target;
-                hoveredItem.SetHovered(true);
+                target.SetHovered(true);
             }
         }
     }
@@ -141,5 +174,11 @@ public class PlayerHand2D : MonoBehaviour
         heldItem.transform.SetParent(null);
         heldItem.OnDrop();
         heldItem = null;
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = heldItem != null ? Color.green : Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.3f);
     }
 }
