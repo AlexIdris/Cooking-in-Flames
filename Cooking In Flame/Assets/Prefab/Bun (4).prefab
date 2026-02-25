@@ -101,13 +101,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 839999783817354031}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 1593099826446340962}
+  smoothSpeed: 10
+  destroyAfterPlaced: 3
 --- !u!58 &6912649894461817812
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -249,8 +252,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 0}
+  smoothSpeed: 10
+  destroyAfterPlaced: 3
 --- !u!58 &2941314467409305061
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -392,8 +398,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 0}
+  smoothSpeed: 10
+  destroyAfterPlaced: 3
 --- !u!58 &7365097840050793190
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -442,9 +451,10 @@ GameObject:
   - component: {fileID: 9156952055522490530}
   - component: {fileID: 8217010993491543405}
   - component: {fileID: 6483844102506428462}
+  - component: {fileID: 668123283174453956}
   m_Layer: 6
   m_Name: Bun (4)
-  m_TagString: Untagged
+  m_TagString: Food
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -537,8 +547,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 4964902613303132117}
+  smoothSpeed: 10
+  destroyAfterPlaced: 0.1
 --- !u!58 &6483844102506428462
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -575,3 +588,30 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!50 &668123283174453956
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6522805717157672678}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 1
+  m_Mass: 0.026546456
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 7

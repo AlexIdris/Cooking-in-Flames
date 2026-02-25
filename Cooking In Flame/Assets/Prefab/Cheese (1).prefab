@@ -105,8 +105,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 0}
+  smoothSpeed: 10
+  destroyAfterPlaced: 3
 --- !u!58 &4178796276906032646
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -155,6 +158,7 @@ GameObject:
   - component: {fileID: 5442951520446994268}
   - component: {fileID: 1214502759292423483}
   - component: {fileID: 2930869559941363880}
+  - component: {fileID: -869491292125582500}
   m_Layer: 6
   m_Name: Cheese (1)
   m_TagString: Untagged
@@ -249,8 +253,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
   hoverScale: 1.15
-  glowObject: {fileID: 6768277254858304606}
+  smoothSpeed: 10
+  destroyAfterPlaced: 0.1
 --- !u!58 &2930869559941363880
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -287,3 +294,30 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!50 &-869491292125582500
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7044512172110321796}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 1
+  m_Mass: 0.0001
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 3

@@ -4,28 +4,44 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(SpriteRenderer), typeof(Collider2D))]
 public class Spawnable2D : MonoBehaviour
 {
-    [Header("Spawn Prefab (What to create)")]
-    public GameObject spawnPrefab;  // Drag sliced tomato prefab here!
+    [Header("Spawn Settings")]
+    [Tooltip("The prefab that will be spawned when interacting with this object")]
+    public GameObject spawnPrefab;
+
+    [Tooltip("Spawn on single click (true) or once per hold (false)")]
+    public bool spawnOnSingleClick = true;
+
+    [Tooltip("Plane Z where spawning happens (usually 0 for 2D)")]
+    public float spawnPlaneZ = 0f;
+
+  
+  
 
     [Header("Hover Glow")]
     public Color normalColor = Color.white;
-    public Color hoverColor = new Color(0.6f, 1f, 1f, 1f);  // Cyan glow
+    public Color hoverColor = new Color(0.6f, 1f, 1f, 1f);
     public float hoverScale = 1.15f;
+    [Range(4f, 20f)]
+    public float smoothSpeed = 10f;
 
-    [Header("Spawn Settings")]
-    public LayerMask spawnLayer = -1;  // Layers where spawning is allowed (e.g., tables)
-    public float spawnOffset = 0.1f;   // Slight offset above surface if needed
-
+    private Collider2D col;
     private SpriteRenderer spriteRend;
-    private Collider2D myCollider;
     private Vector3 originalScale;
-    private bool isSpawning = false;   // Prevents multiple spawns during one hold
+    private bool isHovered = false;
+    private bool targetGlow = false;
+    private bool hasSpawnedThisInteraction = false;
 
     void Awake()
     {
+        col = GetComponent<Collider2D>();
         spriteRend = GetComponent<SpriteRenderer>();
-        myCollider = GetComponent<Collider2D>();
         originalScale = transform.localScale;
+
+        if (col == null || spriteRend == null)
+        {
+            Debug.LogError($"{name}: Missing Collider2D or SpriteRenderer!", this);
+            enabled = false;
+        }
     }
 
     void Start()
@@ -35,61 +51,80 @@ public class Spawnable2D : MonoBehaviour
 
     void Update()
     {
-        // Only respond to input if cursor is hovering this object
-        if (!IsHovered()) return;
+        Vector2 mouseWorld = GetMouseWorldPosition();
+        isHovered = col.OverlapPoint(mouseWorld);
 
-        // Hold LMB → Spawn once
-        if (Mouse.current.leftButton.isPressed && !isSpawning)
+        targetGlow = spawnPrefab != null && isHovered && !hasSpawnedThisInteraction;
+
+        SmoothTransition();
+
+        if (!targetGlow)
         {
-            SpawnPrefab();
+            hasSpawnedThisInteraction = false;
+            return;
         }
 
-        // Release LMB → Reset spawn flag
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        bool shouldSpawn = false;
+
+        if (spawnOnSingleClick)
         {
-            isSpawning = false;
-        }
-    }
-
-    bool IsHovered()
-    {
-        Vector2 mouseWorld = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        return myCollider.OverlapPoint(mouseWorld);
-    }
-
-    void SpawnPrefab()
-    {
-        isSpawning = true;  // Lock – only one spawn per hold
-
-        Vector2 mouseWorld = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-
-        // Optional: Raycast down to surface (e.g., table)
-        RaycastHit2D hit = Physics2D.Raycast(mouseWorld, Vector2.down, 2f, spawnLayer);
-        Vector2 spawnPos = hit.collider != null ? hit.point + Vector2.up * spawnOffset : mouseWorld;
-
-        // Instantiate single prefab at cursor pos
-        Instantiate(spawnPrefab, spawnPos, Quaternion.identity);
-
-        ResetVisuals();  // Brief flash or keep glow during hold
-        Debug.Log($"Spawned {spawnPrefab.name} at cursor position!");
-    }
-
-    public void SetHovered(bool hovered)
-    {
-        if (hovered)
-        {
-            spriteRend.color = hoverColor;
-            transform.localScale = originalScale * hoverScale;
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                shouldSpawn = true;
         }
         else
         {
-            ResetVisuals();
+            if (Mouse.current.leftButton.isPressed && !Mouse.current.leftButton.wasPressedThisFrame)
+                shouldSpawn = true;
         }
+
+        if (shouldSpawn)
+        {
+            SpawnPrefab(mouseWorld);
+        }
+    }
+
+    private Vector2 GetMouseWorldPosition()
+    {
+        Vector2 screenPos = Mouse.current.position.ReadValue();
+        Ray ray = Camera.main.ScreenPointToRay(screenPos);
+
+        Plane plane = new Plane(Vector3.forward, new Vector3(0, 0, spawnPlaneZ));
+        if (plane.Raycast(ray, out float enter))
+        {
+            return ray.GetPoint(enter);
+        }
+
+        return Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, Camera.main.nearClipPlane));
+    }
+
+    private void SpawnPrefab(Vector2 position)
+    {
+        if (spawnPrefab == null) return;
+
+        // Spawn the object
+        GameObject spawned = Instantiate(spawnPrefab, position, Quaternion.identity);
+        hasSpawnedThisInteraction = true;
+
+     
+    }
+
+    private void SmoothTransition()
+    {
+        if (spriteRend == null) return;
+
+        Color targetC = targetGlow ? hoverColor : normalColor;
+        spriteRend.color = Color.Lerp(spriteRend.color, targetC, smoothSpeed * Time.deltaTime);
+
+        Vector3 targetS = targetGlow ? originalScale * hoverScale : originalScale;
+        transform.localScale = Vector3.Lerp(transform.localScale, targetS, smoothSpeed * Time.deltaTime);
     }
 
     private void ResetVisuals()
     {
-        spriteRend.color = normalColor;
-        transform.localScale = originalScale;
+        if (spriteRend != null)
+        {
+            spriteRend.color = normalColor;
+            transform.localScale = originalScale;
+        }
     }
 }
