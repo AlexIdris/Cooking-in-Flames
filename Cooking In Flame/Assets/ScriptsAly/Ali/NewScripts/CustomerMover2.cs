@@ -53,17 +53,25 @@ public class CustomerMover2 : MonoBehaviour
 
         switch (food)
         {
+
+            case FoodType.Coffee:
+                label = "Coffee";
+                break;
+
             case FoodType.NormalBurger:
-                label = "Normal Burger";
+                label = "NormalBurger";
                 break;
 
             case FoodType.TomatoBurger:
-                label = "Burger w/ Tomato";
+                label = "TomatoBurger";
                 break;
 
             case FoodType.PattyOnly:
-                label = "Patty Only";
+                label = "PattyOnly";
                 break;
+
+           
+
         }
 
         SetOrderText(label);

@@ -80,7 +80,7 @@ public class CustomerSpawner2 : MonoBehaviour
         nextIndex++;
 
         // Pick random food and assign to customer
-        FoodType randomFood = (FoodType)Random.Range(0, 3);
+        FoodType randomFood = (FoodType)Random.Range(0, 4);
         mover.SetOrder(randomFood);
     }
 
