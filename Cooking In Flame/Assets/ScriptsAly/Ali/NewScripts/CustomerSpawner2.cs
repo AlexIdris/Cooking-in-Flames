@@ -72,6 +72,12 @@ public class CustomerSpawner2 : MonoBehaviour
 
         customers.Add(mover);
         nextIndex++;
+
+        // pick random food
+        FoodType randomFood = (FoodType)Random.Range(0, 3);
+
+        // assign it to customer
+        mover.SetOrder(randomFood);
     }
 
     void MoveQueueForward()

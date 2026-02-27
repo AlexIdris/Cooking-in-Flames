@@ -1,10 +1,15 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class CustomerMover2 : MonoBehaviour
 {
     public float moveSpeed = 3f;
     public float scaleSpeed = 2f;
+
+    public FoodType orderedFood;
+
+    public TextMeshPro orderText;
 
     private Transform targetPoint;
     private float targetScale;
@@ -38,6 +43,31 @@ public class CustomerMover2 : MonoBehaviour
         leaving = false;
     }
 
+    public void SetOrder(FoodType food)
+    {
+        orderedFood = food;
+
+        // convert enum to readable text
+        string label = "";
+
+        switch (food)
+        {
+            case FoodType.NormalBurger:
+                label = "Normal Burger";
+                break;
+
+            case FoodType.TomatoBurger:
+                label = "Burger w/ Tomato";
+                break;
+
+            case FoodType.PattyOnly:
+                label = "Patty Only";
+                break;
+        }
+
+        SetOrderText(label);
+    }
+
     void Update()
     {
         // Move to queue position
@@ -63,6 +93,14 @@ public class CustomerMover2 : MonoBehaviour
         if (leaving)
         {
             transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
+        }
+    }
+
+    public void SetOrderText(string text)
+    {
+        if (orderText != null)
+        {
+            orderText.text = text;
         }
     }
 
