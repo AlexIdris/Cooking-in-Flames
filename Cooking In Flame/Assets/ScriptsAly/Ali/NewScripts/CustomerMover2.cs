@@ -19,6 +19,7 @@ public class CustomerMover2 : MonoBehaviour
     private Vector3 baseScale;
     public float BaseScale => baseScale.x;
 
+    [HideInInspector] public CustomerSpawner2 spawner;
     [HideInInspector] public CustomerSpawner2.CharacterData currentCharacter;
 
     private SpriteRenderer sr;
@@ -100,6 +101,8 @@ public class CustomerMover2 : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (spawner.customers[0] != this) return; // ignore if not front
+
         if (leaving) return; // ignore if already leaving
 
         FoodItem food = other.GetComponent<FoodItem>();
