@@ -59,24 +59,28 @@ public class CustomerSpawner2 : MonoBehaviour
         // Pick random character
         CharacterData chosen = characters[Random.Range(0, characters.Count)];
 
+        // Spawn customer
         GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
         CustomerMover2 mover = newCustomer.GetComponent<CustomerMover2>();
 
-        // Assign chosen character data
+        // <-- assign spawner reference here
+        mover.spawner = this;
+
+        // Assign chosen character data and default face
         mover.currentCharacter = chosen;
         mover.SetFace(3); // normal by default
 
+        // Set scale
         float startMultiplier = 1f;
         float targetMultiplier = GetScaleForIndex(nextIndex);
         mover.Init(orderPoints[nextIndex], startMultiplier, targetMultiplier);
 
+        // Add to queue
         customers.Add(mover);
         nextIndex++;
 
-        // pick random food
+        // Pick random food and assign to customer
         FoodType randomFood = (FoodType)Random.Range(0, 3);
-
-        // assign it to customer
         mover.SetOrder(randomFood);
     }
 
