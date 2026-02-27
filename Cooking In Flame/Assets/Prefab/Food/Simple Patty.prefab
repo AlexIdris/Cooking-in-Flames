@@ -241,6 +241,7 @@ GameObject:
   - component: {fileID: 1743892122306564379}
   - component: {fileID: 8581023563557946233}
   - component: {fileID: 5308074659050613959}
+  - component: {fileID: -2796529425752665817}
   m_Layer: 6
   m_Name: Simple Patty
   m_TagString: Untagged
@@ -415,6 +416,19 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   destroyAfterPlaced: 0.1
+--- !u!114 &-2796529425752665817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4068592286417005145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75398d6cd81228d44b2e9a0841142c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodItem
+  foodType: 2
 --- !u!1 &4353522366879886553
 GameObject:
   m_ObjectHideFlags: 0

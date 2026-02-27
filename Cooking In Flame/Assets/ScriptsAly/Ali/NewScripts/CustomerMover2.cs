@@ -68,6 +68,8 @@ public class CustomerMover2 : MonoBehaviour
         SetOrderText(label);
     }
 
+    
+
     void Update()
     {
         // Move to queue position
@@ -94,6 +96,30 @@ public class CustomerMover2 : MonoBehaviour
         {
             transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
         }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (leaving) return; // ignore if already leaving
+
+        FoodItem food = other.GetComponent<FoodItem>();
+        if (food == null) return; // ignore non-food objects
+
+        // check if correct
+        if (food.foodType == orderedFood)
+        {
+            SetFace(1); // happy
+        }
+        else
+        {
+            SetFace(2); // sad
+        }
+
+        // destroy the food after serving
+        Destroy(other.gameObject);
+
+        // leave after reaction
+        LeaveAndDie();
     }
 
     public void SetOrderText(string text)
