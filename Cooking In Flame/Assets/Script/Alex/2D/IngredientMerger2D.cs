@@ -16,6 +16,10 @@ public class IngredientMerger2D : MonoBehaviour
     [Range(0.1f, 2f)]
     public float fadeDuration = 0.5f; // Time for fade-in/out
 
+    [Header("Input Delay")]
+    [Range(0.1f, 5f)]
+    public float inputDelay = 0.1f; // Minimum delay between accepted inputs
+
     [Header("Tracking")]
     // All instances that have ever entered this collider
     public List<GameObject> allEnteredPrefabs = new List<GameObject>();
@@ -40,6 +44,9 @@ public class IngredientMerger2D : MonoBehaviour
 
     // Prevent multiple ReplaceOutput coroutines from overlapping
     private bool isReplacingOutput = false;
+
+    // Time when the last input was accepted
+    private float lastInputTime = -Mathf.Infinity;
 
     void Awake()
     {
@@ -66,11 +73,13 @@ public class IngredientMerger2D : MonoBehaviour
     {
         if (other == null) return;
 
-        GameObject obj = other.gameObject;
-
-        // Only let each ingredient activate once ever
-        if (allEnteredPrefabs.Contains(obj))
+        // Respect delay between accepted inputs
+        if (Time.time - lastInputTime < inputDelay)
             return;
+
+        lastInputTime = Time.time;
+
+        GameObject obj = other.gameObject;
 
         currentItemsInside.Add(obj);
 
