@@ -68,6 +68,10 @@ public class IngredientMerger2D : MonoBehaviour
 
         GameObject obj = other.gameObject;
 
+        // Only let each ingredient activate once ever
+        if (allEnteredPrefabs.Contains(obj))
+            return;
+
         currentItemsInside.Add(obj);
 
         if (!allEnteredPrefabs.Contains(obj))
