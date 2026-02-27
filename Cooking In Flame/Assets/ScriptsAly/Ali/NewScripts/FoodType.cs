@@ -5,6 +5,6 @@ public enum FoodType
     NormalBurger,
     TomatoBurger,
     PattyOnly,
-    Dinosaurburger
+   //inosaurburger
     
 }
