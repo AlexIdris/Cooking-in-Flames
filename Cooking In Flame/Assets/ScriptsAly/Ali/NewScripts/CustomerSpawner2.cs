@@ -14,7 +14,7 @@ public class CustomerSpawner2 : MonoBehaviour
 
     // keep track of last 9 spawned characters
     private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
-    public int recentLimit = 9;
+    public int CustomerTypeRecentLimit = 9;
 
     //keep track of last 2 orders
     private Queue<FoodType> recentOrders = new Queue<FoodType>();
@@ -25,6 +25,25 @@ public class CustomerSpawner2 : MonoBehaviour
     public Transform[] orderPoints;
 
     public List<CharacterData> characters = new List<CharacterData>();
+
+    [System.Serializable]
+    public class FoodIconData
+    {
+        public FoodType type;
+        public Sprite icon;
+    }
+
+    public List<FoodIconData> foodIcons; // assign in inspector
+
+    public Sprite GetFoodIcon(FoodType type)
+    {
+        foreach (var f in foodIcons)
+        {
+            if (f.type == type)
+                return f.icon;
+        }
+        return null;
+    }
 
     [HideInInspector] public List<CustomerMover2> customers = new List<CustomerMover2>();
     private int nextIndex = 0;
@@ -74,6 +93,10 @@ public class CustomerSpawner2 : MonoBehaviour
         // <-- assign spawner reference here
         mover.spawner = this;
 
+        CustomerOrderDisplay display = newCustomer.GetComponent<CustomerOrderDisplay>();
+        if (display != null)
+            display.Init(this, mover);
+
         // Assign chosen character data and default face
         mover.currentCharacter = chosen;
         mover.SetFace(3); // normal by default
@@ -90,6 +113,9 @@ public class CustomerSpawner2 : MonoBehaviour
         // Pick random food and assign to customer
         FoodType randomFood = GetRandomOrder();
         mover.SetOrder(randomFood);
+
+        if (display != null)
+            display.UpdateOrderDisplay();
     }
 
     CharacterData GetRandomCharacter()
@@ -114,7 +140,7 @@ public class CustomerSpawner2 : MonoBehaviour
         recentCharacters.Enqueue(chosen);
 
         // keep only last N (9)
-        if (recentCharacters.Count > recentLimit)
+        if (recentCharacters.Count > CustomerTypeRecentLimit)
             recentCharacters.Dequeue();
 
         return chosen;

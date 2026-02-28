@@ -1043,7 +1043,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 802a044f9d768a949af52e359e1675dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner2
-  recentLimit: 9
+  CustomerTypeRecentLimit: 9
   orderHistoryLimit: 2
   customerPrefab: {fileID: 2048135426286069369, guid: cc249295ead9cd74cbf7337a82916ca0, type: 3}
   spawnPoint: {fileID: 1412086555}
@@ -1134,6 +1134,13 @@ MonoBehaviour:
     normalFace: {fileID: 21300000, guid: 255b216523bfc874eb8a90de15f2c259, type: 3}
     happyFace: {fileID: 21300000, guid: 615947bcf9f1dce4a8ae0b9e178a7c30, type: 3}
     sadFace: {fileID: 21300000, guid: cf9863105086c9b4197d2948a265518f, type: 3}
+  foodIcons:
+  - type: 1
+    icon: {fileID: 21300000, guid: e6cb98e78aef3694caf2bb29907d8f07, type: 3}
+  - type: 2
+    icon: {fileID: 21300000, guid: 6b139d48eccb6ff4c9b392972616f25f, type: 3}
+  - type: 3
+    icon: {fileID: 21300000, guid: 1f5f721920719a64cae150949ff21e26, type: 3}
   customers: []
 --- !u!4 &1234151961
 Transform:
