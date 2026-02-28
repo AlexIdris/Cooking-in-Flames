@@ -986,6 +986,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 802a044f9d768a949af52e359e1675dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner2
+  recentLimit: 9
   customerPrefab: {fileID: 2048135426286069369, guid: cc249295ead9cd74cbf7337a82916ca0, type: 3}
   spawnPoint: {fileID: 1412086555}
   orderPoints:
@@ -1007,6 +1008,74 @@ MonoBehaviour:
     normalFace: {fileID: 21300000, guid: 32005218f9abae44ba9e32589ff650b1, type: 3}
     happyFace: {fileID: 21300000, guid: bb0e015c39a2b96459e89f4288326ed6, type: 3}
     sadFace: {fileID: 21300000, guid: 1373fd390729d0f448b2d800b73f36a7, type: 3}
+  - characterName: 35
+    normalFace: {fileID: 21300000, guid: 48b6648f6812ed6439049d28804602f4, type: 3}
+    happyFace: {fileID: 21300000, guid: f8e3ec5dca507ce4a99d0bfe46fa265b, type: 3}
+    sadFace: {fileID: 21300000, guid: 1f5f721920719a64cae150949ff21e26, type: 3}
+  - characterName: 45
+    normalFace: {fileID: 21300000, guid: 8e90831194286b44e9a1be367e975a06, type: 3}
+    happyFace: {fileID: 21300000, guid: fe95b1313bad3c746a8bb8f777f0184c, type: 3}
+    sadFace: {fileID: 21300000, guid: 8292a90b99213184b86b65993d1b362a, type: 3}
+  - characterName: 69
+    normalFace: {fileID: 21300000, guid: 818eca51dfeabc04292dd0c0d50ed8c5, type: 3}
+    happyFace: {fileID: 21300000, guid: 30faa48b45595f14586612374787e48a, type: 3}
+    sadFace: {fileID: 21300000, guid: a4d0eceb59a296146ae3efed1708d4ad, type: 3}
+  - characterName: OLD
+    normalFace: {fileID: 21300000, guid: 3f528efb4497c4b45af3bca65d63ee73, type: 3}
+    happyFace: {fileID: 21300000, guid: 3b153c6b48fb87a49b5c81ee17363540, type: 3}
+    sadFace: {fileID: 21300000, guid: d36c4811c4fbd1c4fb51f5f6ae8156fc, type: 3}
+  - characterName: Bald
+    normalFace: {fileID: 21300000, guid: b97776b59c51cf14182e375c233ad8c8, type: 3}
+    happyFace: {fileID: 21300000, guid: 31af85b34219eb74096380d2299dd709, type: 3}
+    sadFace: {fileID: 21300000, guid: 8c4f51d72fa527a4db75cb0eeea08def, type: 3}
+  - characterName: Hooligan1
+    normalFace: {fileID: 21300000, guid: fdc447160ca8f0a499f99bd9b0fca70d, type: 3}
+    happyFace: {fileID: 21300000, guid: 8f269b9b468b2904a868417dc6e78f32, type: 3}
+    sadFace: {fileID: 21300000, guid: 4a7d637904b629d4ebb436f7f85fd091, type: 3}
+  - characterName: Hooligan2
+    normalFace: {fileID: 21300000, guid: 474b4a06bbaeda24a8108a9b3c6f2593, type: 3}
+    happyFace: {fileID: 21300000, guid: bc3ee643bdd18c74f803a921be63cb20, type: 3}
+    sadFace: {fileID: 21300000, guid: adb4b065ee594284b943ff2a9d35018d, type: 3}
+  - characterName: Nerd1
+    normalFace: {fileID: 21300000, guid: 79d81da3dea7bac408bbdba9c70e7bb0, type: 3}
+    happyFace: {fileID: 21300000, guid: 136c9829a4087eb4981f25086c5cc9e5, type: 3}
+    sadFace: {fileID: 21300000, guid: 87c7e95b60e74dd4683838c1b7b50fd0, type: 3}
+  - characterName: Nerd2
+    normalFace: {fileID: 21300000, guid: b0923f2236f41ed4b84b43c188d72819, type: 3}
+    happyFace: {fileID: 21300000, guid: 9ed69e8060e34114ba2a61a18074b930, type: 3}
+    sadFace: {fileID: 21300000, guid: 8651f9243533dc149825d2399180b594, type: 3}
+  - characterName: Nerd3
+    normalFace: {fileID: 21300000, guid: a3df7d78c3422ff4190afa4405617f19, type: 3}
+    happyFace: {fileID: 21300000, guid: bf717045c89c59e4cb42fdd987720097, type: 3}
+    sadFace: {fileID: 21300000, guid: 3cf39bdf92402744d9a5893633d2d026, type: 3}
+  - characterName: GF1
+    normalFace: {fileID: 21300000, guid: 9a356f0fe2b8f3346bc9ac551fe5f056, type: 3}
+    happyFace: {fileID: 21300000, guid: 8cd3585d737c23744aabdd168a76dd76, type: 3}
+    sadFace: {fileID: 21300000, guid: 90ab81eeb1bee2b4185e83718854dc50, type: 3}
+  - characterName: GF2
+    normalFace: {fileID: 21300000, guid: cd4078e9a25c3c84eb1a8d818aefa799, type: 3}
+    happyFace: {fileID: 21300000, guid: 369bce8c61531bf4b8a6f581fcc62b62, type: 3}
+    sadFace: {fileID: 21300000, guid: dccb512f3699c5845a5b6672fc11dee4, type: 3}
+  - characterName: GF3
+    normalFace: {fileID: 21300000, guid: 0afc4b7bd2530094fa2b40b4bdb758dd, type: 3}
+    happyFace: {fileID: 21300000, guid: 4f40eae3011f2614ab9e2a33b0759713, type: 3}
+    sadFace: {fileID: 21300000, guid: bfbfffbd3092fa846906273b5ce598c6, type: 3}
+  - characterName: GF4
+    normalFace: {fileID: 21300000, guid: 21daf9553855de04aaaa538ee587affd, type: 3}
+    happyFace: {fileID: 21300000, guid: 418951c10cbad7545a1b20f2a28ef044, type: 3}
+    sadFace: {fileID: 21300000, guid: 07f4530dc23ff4a458300184a2a68258, type: 3}
+  - characterName: GF5
+    normalFace: {fileID: 21300000, guid: 2ac9cde5d5eccac409ae285a1a670f0f, type: 3}
+    happyFace: {fileID: 21300000, guid: f132ea9da5caa6249b3deea83f9856b4, type: 3}
+    sadFace: {fileID: 21300000, guid: 6f2e1fc2002e96c4b83df8ee4666d4f4, type: 3}
+  - characterName: GF6
+    normalFace: {fileID: 21300000, guid: bdbcfe79ca458584c93e8e3ce3856084, type: 3}
+    happyFace: {fileID: 21300000, guid: fc5b29bb18c022a4cbbaab105f9c8a87, type: 3}
+    sadFace: {fileID: 21300000, guid: 4c0a5d86f7c58eb45b3beff2c675c3c9, type: 3}
+  - characterName: GF7
+    normalFace: {fileID: 21300000, guid: 255b216523bfc874eb8a90de15f2c259, type: 3}
+    happyFace: {fileID: 21300000, guid: 615947bcf9f1dce4a8ae0b9e178a7c30, type: 3}
+    sadFace: {fileID: 21300000, guid: cf9863105086c9b4197d2948a265518f, type: 3}
   customers: []
 --- !u!4 &1234151961
 Transform:
