@@ -71,7 +71,11 @@ public class CustomerMover2 : MonoBehaviour
                 label = "PattyOnly";
                 break;
 
-           
+            case FoodType.BaconBurger:
+                label = "BaconBurger";
+                break;
+
+
 
         }
 

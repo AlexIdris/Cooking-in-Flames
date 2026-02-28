@@ -16,6 +16,10 @@ public class CustomerSpawner2 : MonoBehaviour
     private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
     public int recentLimit = 9;
 
+    //keep track of last 2 orders
+    private Queue<FoodType> recentOrders = new Queue<FoodType>();
+    public int orderHistoryLimit = 2;
+
     public GameObject customerPrefab;
     public Transform spawnPoint;
     public Transform[] orderPoints;
@@ -84,7 +88,7 @@ public class CustomerSpawner2 : MonoBehaviour
         nextIndex++;
 
         // Pick random food and assign to customer
-        FoodType randomFood = (FoodType)Random.Range(0, 4);
+        FoodType randomFood = GetRandomOrder();
         mover.SetOrder(randomFood);
     }
 
@@ -112,6 +116,41 @@ public class CustomerSpawner2 : MonoBehaviour
         // keep only last N (9)
         if (recentCharacters.Count > recentLimit)
             recentCharacters.Dequeue();
+
+        return chosen;
+    }
+
+    FoodType GetRandomOrder()
+    {
+        List<FoodType> allFoods = new List<FoodType>()
+    {
+        FoodType.NormalBurger,
+        FoodType.TomatoBurger,
+        FoodType.PattyOnly,
+        FoodType.BaconBurger
+    };
+
+        List<FoodType> available = new List<FoodType>();
+
+        // exclude recent ones
+        foreach (var f in allFoods)
+        {
+            if (!recentOrders.Contains(f))
+                available.Add(f);
+        }
+
+        // if everything got excluded (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<FoodType>(allFoods);
+
+        // pick random
+        FoodType chosen = available[Random.Range(0, available.Count)];
+
+        // push to history
+        recentOrders.Enqueue(chosen);
+
+        if (recentOrders.Count > orderHistoryLimit)
+            recentOrders.Dequeue();
 
         return chosen;
     }

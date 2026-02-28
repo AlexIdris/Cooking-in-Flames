@@ -728,6 +728,7 @@ GameObject:
   - component: {fileID: 4539142852329616730}
   - component: {fileID: 4827067365699786038}
   - component: {fileID: 8929214446577679864}
+  - component: {fileID: -5237922316763928711}
   m_Layer: 6
   m_Name: 'Baccon Burger '
   m_TagString: Untagged
@@ -905,6 +906,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 7
+--- !u!114 &-5237922316763928711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1946452041524021588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75398d6cd81228d44b2e9a0841142c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodItem
+  foodType: 4
 --- !u!1 &6987549262206216939
 GameObject:
   m_ObjectHideFlags: 0

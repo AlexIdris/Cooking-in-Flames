@@ -414,6 +414,63 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1001 &379470082
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.892582
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.7067575
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1393153500919337427, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1946452041524021588, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
+      propertyPath: m_Name
+      value: 'Baccon Burger '
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: fcc35bd05e9385644913a8ba4598e9fd, type: 3}
 --- !u!1 &386483292
 GameObject:
   m_ObjectHideFlags: 0
@@ -987,6 +1044,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner2
   recentLimit: 9
+  orderHistoryLimit: 2
   customerPrefab: {fileID: 2048135426286069369, guid: cc249295ead9cd74cbf7337a82916ca0, type: 3}
   spawnPoint: {fileID: 1412086555}
   orderPoints:
@@ -2318,3 +2376,4 @@ SceneRoots:
   - {fileID: 1227863056}
   - {fileID: 6421745306206816244}
   - {fileID: 1663530260}
+  - {fileID: 379470082}
