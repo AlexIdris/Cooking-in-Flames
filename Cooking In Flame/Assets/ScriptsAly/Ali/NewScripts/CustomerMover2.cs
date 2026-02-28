@@ -4,6 +4,7 @@ using TMPro;
 
 public class CustomerMover2 : MonoBehaviour
 {
+
     public float moveSpeed = 3f;
     public float scaleSpeed = 2f;
 

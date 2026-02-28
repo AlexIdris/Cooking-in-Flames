@@ -12,6 +12,10 @@ public class CustomerSpawner2 : MonoBehaviour
         public Sprite sadFace;
     }
 
+    // keep track of last 9 spawned characters
+    private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
+    public int recentLimit = 9;
+
     public GameObject customerPrefab;
     public Transform spawnPoint;
     public Transform[] orderPoints;
@@ -57,7 +61,7 @@ public class CustomerSpawner2 : MonoBehaviour
         if (characters.Count == 0) return;
 
         // Pick random character
-        CharacterData chosen = characters[Random.Range(0, characters.Count)];
+        CharacterData chosen = GetRandomCharacter();
 
         // Spawn customer
         GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
@@ -82,6 +86,34 @@ public class CustomerSpawner2 : MonoBehaviour
         // Pick random food and assign to customer
         FoodType randomFood = (FoodType)Random.Range(0, 4);
         mover.SetOrder(randomFood);
+    }
+
+    CharacterData GetRandomCharacter()
+    {
+        List<CharacterData> available = new List<CharacterData>();
+
+        // build a list of characters that are NOT in recent history
+        foreach (var c in characters)
+        {
+            if (!recentCharacters.Contains(c))
+                available.Add(c);
+        }
+
+        // if all characters are in recent list (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<CharacterData>(characters);
+
+        // pick random from available
+        CharacterData chosen = available[Random.Range(0, available.Count)];
+
+        // add to recent queue
+        recentCharacters.Enqueue(chosen);
+
+        // keep only last N (9)
+        if (recentCharacters.Count > recentLimit)
+            recentCharacters.Dequeue();
+
+        return chosen;
     }
 
     void MoveQueueForward()
