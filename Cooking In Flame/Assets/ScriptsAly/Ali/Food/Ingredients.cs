@@ -6,7 +6,8 @@ public enum IngredientType
     Patty,
     Lettuce,
     Tomato,
-    TopBun,
+    TopBun, DOG,
+
     // add more types here later
 }
 
