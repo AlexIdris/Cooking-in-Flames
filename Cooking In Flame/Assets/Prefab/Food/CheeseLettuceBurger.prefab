@@ -79,7 +79,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 592939647, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -109,6 +109,7 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   destroyAfterPlaced: 3
+  isHeld: 0
 --- !u!1 &4557390474362534704
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,7 +189,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 699909631, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -282,7 +283,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 1110943985, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -312,6 +313,7 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   destroyAfterPlaced: 3
+  isHeld: 0
 --- !u!58 &7302709295541595597
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -426,7 +428,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 592939647, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -453,7 +455,7 @@ GameObject:
   - component: {fileID: 4038131296864023193}
   - component: {fileID: 7410281723660992502}
   m_Layer: 6
-  m_Name: Cheese Patty Burger (1)
+  m_Name: CheeseLettuceBurger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -527,7 +529,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -2073242899
-  m_SortingLayer: 5
+  m_SortingLayer: 6
   m_SortingOrder: 4
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
@@ -557,6 +559,7 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   destroyAfterPlaced: 0.1
+  isHeld: 0
 --- !u!61 &4038131296864023193
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -709,7 +712,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: 823540567, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -803,7 +806,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 823540567, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -833,6 +836,7 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   destroyAfterPlaced: 3
+  isHeld: 0
 --- !u!58 &3521423096627800041
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -976,7 +980,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 1110943985, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -1159,7 +1163,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 592939647, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -1238,7 +1242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5442951520446994268, guid: 2ab1633f334e0c8439c98c52fafb30d6, type: 3}
       propertyPath: m_SortingLayer
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5442951520446994268, guid: 2ab1633f334e0c8439c98c52fafb30d6, type: 3}
       propertyPath: m_SortingOrder
@@ -1350,7 +1354,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1152992721364406816, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingLayer
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1152992721364406816, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingOrder
@@ -1378,7 +1382,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6333541213388903011, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingLayer
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6333541213388903011, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingOrder
@@ -1485,7 +1489,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1026136320663049377, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_SortingLayer
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1026136320663049377, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_SortingOrder

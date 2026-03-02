@@ -1541,6 +1541,18 @@ PrefabInstance:
       propertyPath: 'orderPoints.Array.data[4]'
       value: 
       objectReference: {fileID: 168187556}
+    - target: {fileID: 1954945102073920060, guid: 0aad094a9b23bbd4498d49dbe475afd6, type: 3}
+      propertyPath: foodIcons.Array.data[0].icon
+      value: 
+      objectReference: {fileID: 228381058, guid: 75b99065d069885428dfd7f2c28b223d, type: 3}
+    - target: {fileID: 1954945102073920060, guid: 0aad094a9b23bbd4498d49dbe475afd6, type: 3}
+      propertyPath: foodIcons.Array.data[1].icon
+      value: 
+      objectReference: {fileID: -1790802792, guid: 75b99065d069885428dfd7f2c28b223d, type: 3}
+    - target: {fileID: 1954945102073920060, guid: 0aad094a9b23bbd4498d49dbe475afd6, type: 3}
+      propertyPath: foodIcons.Array.data[2].icon
+      value: 
+      objectReference: {fileID: -1330749861, guid: 75b99065d069885428dfd7f2c28b223d, type: 3}
     - target: {fileID: 1961032405085935352, guid: 0aad094a9b23bbd4498d49dbe475afd6, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.70892

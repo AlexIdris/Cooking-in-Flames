@@ -5,7 +5,7 @@ public class CaptureAllBurgers : MonoBehaviour
 {
     public Camera cam;
     public RenderTexture rt;
-    public string fileName = "AllBurgers";
+    public string fileName = "CapturedBurgers";
 
     public void Capture()
     {
