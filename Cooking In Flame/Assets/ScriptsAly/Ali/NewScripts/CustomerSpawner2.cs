@@ -12,11 +12,38 @@ public class CustomerSpawner2 : MonoBehaviour
         public Sprite sadFace;
     }
 
+    // keep track of last 9 spawned characters
+    private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
+    public int CustomerTypeRecentLimit = 9;
+
+    //keep track of last 2 orders
+    private Queue<FoodType> recentOrders = new Queue<FoodType>();
+    public int orderHistoryLimit = 2;
+
     public GameObject customerPrefab;
     public Transform spawnPoint;
     public Transform[] orderPoints;
 
     public List<CharacterData> characters = new List<CharacterData>();
+
+    [System.Serializable]
+    public class FoodIconData
+    {
+        public FoodType type;
+        public Sprite icon;
+    }
+
+    public List<FoodIconData> foodIcons; // assign in inspector
+
+    public Sprite GetFoodIcon(FoodType type)
+    {
+        foreach (var f in foodIcons)
+        {
+            if (f.type == type)
+                return f.icon;
+        }
+        return null;
+    }
 
     [HideInInspector] public List<CustomerMover2> customers = new List<CustomerMover2>();
     private int nextIndex = 0;
@@ -57,7 +84,7 @@ public class CustomerSpawner2 : MonoBehaviour
         if (characters.Count == 0) return;
 
         // Pick random character
-        CharacterData chosen = characters[Random.Range(0, characters.Count)];
+        CharacterData chosen = GetRandomCharacter();
 
         // Spawn customer
         GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
@@ -65,6 +92,10 @@ public class CustomerSpawner2 : MonoBehaviour
 
         // <-- assign spawner reference here
         mover.spawner = this;
+
+        CustomerOrderDisplay display = newCustomer.GetComponent<CustomerOrderDisplay>();
+        if (display != null)
+            display.Init(this, mover);
 
         // Assign chosen character data and default face
         mover.currentCharacter = chosen;
@@ -80,8 +111,74 @@ public class CustomerSpawner2 : MonoBehaviour
         nextIndex++;
 
         // Pick random food and assign to customer
-        FoodType randomFood = (FoodType)Random.Range(0, 3);
+        FoodType randomFood = GetRandomOrder();
         mover.SetOrder(randomFood);
+
+        if (display != null)
+            display.UpdateOrderDisplay();
+    }
+
+    CharacterData GetRandomCharacter()
+    {
+        List<CharacterData> available = new List<CharacterData>();
+
+        // build a list of characters that are NOT in recent history
+        foreach (var c in characters)
+        {
+            if (!recentCharacters.Contains(c))
+                available.Add(c);
+        }
+
+        // if all characters are in recent list (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<CharacterData>(characters);
+
+        // pick random from available
+        CharacterData chosen = available[Random.Range(0, available.Count)];
+
+        // add to recent queue
+        recentCharacters.Enqueue(chosen);
+
+        // keep only last N (9)
+        if (recentCharacters.Count > CustomerTypeRecentLimit)
+            recentCharacters.Dequeue();
+
+        return chosen;
+    }
+
+    FoodType GetRandomOrder()
+    {
+        List<FoodType> allFoods = new List<FoodType>()
+    {
+        FoodType.NormalBurger,
+        FoodType.TomatoBurger,
+        FoodType.PattyOnly,
+        FoodType.BaconBurger
+    };
+
+        List<FoodType> available = new List<FoodType>();
+
+        // exclude recent ones
+        foreach (var f in allFoods)
+        {
+            if (!recentOrders.Contains(f))
+                available.Add(f);
+        }
+
+        // if everything got excluded (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<FoodType>(allFoods);
+
+        // pick random
+        FoodType chosen = available[Random.Range(0, available.Count)];
+
+        // push to history
+        recentOrders.Enqueue(chosen);
+
+        if (recentOrders.Count > orderHistoryLimit)
+            recentOrders.Dequeue();
+
+        return chosen;
     }
 
     void MoveQueueForward()
