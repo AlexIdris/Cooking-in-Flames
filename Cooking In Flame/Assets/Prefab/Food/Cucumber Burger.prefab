@@ -1189,7 +1189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1026136320663049377, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_SortingOrder
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1026136320663049377, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_SortingLayerID
@@ -1200,8 +1200,20 @@ PrefabInstance:
       value: Lettuce
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.15875404
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.15875404
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.15875404
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.054
+      value: -0.008
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1268,15 +1280,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8664518169040625703, guid: b931eaa6cb2b54a408e653fec47ab300, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.13
+      value: 0.14723799
       objectReference: {fileID: 0}
     - target: {fileID: 8664518169040625703, guid: b931eaa6cb2b54a408e653fec47ab300, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.13
+      value: 0.14723799
       objectReference: {fileID: 0}
     - target: {fileID: 8664518169040625703, guid: b931eaa6cb2b54a408e653fec47ab300, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.13
+      value: 0.14723799
       objectReference: {fileID: 0}
     - target: {fileID: 8664518169040625703, guid: b931eaa6cb2b54a408e653fec47ab300, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1320,7 +1332,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8949692885881587486, guid: b931eaa6cb2b54a408e653fec47ab300, type: 3}
       propertyPath: m_Mass
-      value: 0.013273228
+      value: 0.017026667
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1346,7 +1358,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1152992721364406816, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1152992721364406816, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingLayerID
@@ -1370,7 +1382,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6333541213388903011, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6333541213388903011, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_SortingLayerID
@@ -1390,15 +1402,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8199998247719416573, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_LocalScale.x
-      value: 7.009975
+      value: 9.178861
       objectReference: {fileID: 0}
     - target: {fileID: 8199998247719416573, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2.770346
+      value: 3.6274908
       objectReference: {fileID: 0}
     - target: {fileID: 8199998247719416573, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 4.8963103
+      value: 6.4112287
       objectReference: {fileID: 0}
     - target: {fileID: 8199998247719416573, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
       propertyPath: m_LocalPosition.x
