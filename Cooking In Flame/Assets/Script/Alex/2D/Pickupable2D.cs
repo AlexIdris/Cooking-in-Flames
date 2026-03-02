@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;           // ← This fixes the IEnumerator error
+using System.Collections;
 
 [RequireComponent(typeof(SpriteRenderer))]
 public class Pickupable2D : MonoBehaviour
@@ -16,15 +16,25 @@ public class Pickupable2D : MonoBehaviour
     [Range(0.1f, 60f)]
     public float destroyAfterPlaced = 3f;
 
+    // FIXED: Made public so other scripts (e.g. SpawnCleanupManager) can read it
+    public bool isHeld = false;
+
     private SpriteRenderer spriteRend;
+    private Collider2D myCollider;
     private Vector3 originalScale;
-    private bool isHeld = false;
     private bool targetHovered = false;
 
     void Awake()
     {
         spriteRend = GetComponent<SpriteRenderer>();
+        myCollider = GetComponent<Collider2D>();
+
         originalScale = transform.localScale;
+
+        if (spriteRend == null)
+        {
+            Debug.LogError($"{name}: Missing SpriteRenderer!", this);
+        }
     }
 
     void Start()
@@ -46,6 +56,11 @@ public class Pickupable2D : MonoBehaviour
     {
         isHeld = true;
         SetTargetHovered(false);
+
+        if (myCollider != null)
+        {
+            myCollider.enabled = false;
+        }
     }
 
     public void OnDrop()
@@ -53,7 +68,12 @@ public class Pickupable2D : MonoBehaviour
         isHeld = false;
         ResetVisuals();
 
-        // Start self-destruct timer when dropped/placed
+        if (myCollider != null)
+        {
+            myCollider.enabled = true;
+        }
+
+        // Start self-destroy timer when dropped/placed
         if (destroyAfterPlaced > 0f)
         {
             StartCoroutine(DestroyAfterDelay(destroyAfterPlaced));

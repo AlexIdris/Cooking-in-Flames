@@ -10,12 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 3216410884335836303}
   - component: {fileID: 4881056066954421372}
-  - component: {fileID: 9000874429072019820}
-  - component: {fileID: 6940529350815746142}
-  - component: {fileID: -8600792519703024535}
+  - component: {fileID: -6171287761668911499}
+  - component: {fileID: -8534434900862954479}
   m_Layer: 6
-  m_Name: Still Cooking Patty 2
-  m_TagString: Untagged
+  m_Name: 'Still Cooking '
+  m_TagString: Ingredient
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -95,24 +94,34 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &9000874429072019820
-MonoBehaviour:
+--- !u!50 &-6171287761668911499
+Rigidbody2D:
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1167811988853725077}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b4bfe00fc9314940840f938e33af992, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
-  hoverScale: 1.15
-  smoothSpeed: 10
-  destroyAfterPlaced: 0.1
---- !u!58 &6940529350815746142
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 7
+--- !u!58 &-8534434900862954479
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -147,34 +156,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
---- !u!50 &-8600792519703024535
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1167811988853725077}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 1
-  m_Mass: 0.0001
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 3
+  m_Radius: 1
 --- !u!1 &4390458792517393026
 GameObject:
   m_ObjectHideFlags: 0
