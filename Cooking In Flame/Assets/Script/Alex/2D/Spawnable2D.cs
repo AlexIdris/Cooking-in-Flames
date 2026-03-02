@@ -14,8 +14,10 @@ public class Spawnable2D : MonoBehaviour
     [Tooltip("Plane Z where spawning happens (usually 0 for 2D)")]
     public float spawnPlaneZ = 0f;
 
-  
-  
+    [Header("Cooldown")]
+    [Range(0.1f, 10f)]
+    [Tooltip("Time in seconds before next spawn is allowed")]
+    public float cooldownDuration = 1.5f;
 
     [Header("Hover Glow")]
     public Color normalColor = Color.white;
@@ -29,6 +31,8 @@ public class Spawnable2D : MonoBehaviour
     private Vector3 originalScale;
     private bool isHovered = false;
     private bool targetGlow = false;
+    private bool isOnCooldown = false;
+    private float cooldownTimer = 0f;
     private bool hasSpawnedThisInteraction = false;
 
     void Awake()
@@ -51,14 +55,25 @@ public class Spawnable2D : MonoBehaviour
 
     void Update()
     {
+        // Cooldown timer
+        if (isOnCooldown)
+        {
+            cooldownTimer -= Time.deltaTime;
+            if (cooldownTimer <= 0f)
+            {
+                isOnCooldown = false;
+                hasSpawnedThisInteraction = false;
+            }
+        }
+
         Vector2 mouseWorld = GetMouseWorldPosition();
         isHovered = col.OverlapPoint(mouseWorld);
 
-        targetGlow = spawnPrefab != null && isHovered && !hasSpawnedThisInteraction;
+        targetGlow = spawnPrefab != null && isHovered && !isOnCooldown && !hasSpawnedThisInteraction;
 
         SmoothTransition();
 
-        if (!targetGlow)
+        if (!targetGlow) 
         {
             hasSpawnedThisInteraction = false;
             return;
@@ -101,11 +116,17 @@ public class Spawnable2D : MonoBehaviour
     {
         if (spawnPrefab == null) return;
 
-        // Spawn the object
         GameObject spawned = Instantiate(spawnPrefab, position, Quaternion.identity);
         hasSpawnedThisInteraction = true;
 
-     
+        // Register with cleanup manager so loose spawns can be deleted later
+        SpawnCleanupManager.RegisterSpawnedObject(spawned);
+
+        // Start cooldown
+        isOnCooldown = true;
+        cooldownTimer = cooldownDuration;
+
+        Debug.Log($"Spawned {spawnPrefab.name} from {name} | Cooldown started ({cooldownDuration}s)");
     }
 
     private void SmoothTransition()
