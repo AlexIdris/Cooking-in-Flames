@@ -150,10 +150,25 @@ public class CustomerSpawner2 : MonoBehaviour
     {
         List<FoodType> allFoods = new List<FoodType>()
     {
-        FoodType.NormalBurger,
-        FoodType.TomatoBurger,
-        FoodType.PattyOnly,
-        FoodType.BaconBurger
+        FoodType.BaconBurger,
+        FoodType. BaconCheeseBurger,
+        FoodType.BurgerWithTomato,
+        FoodType.CaseOhBurger,
+        FoodType.CheeseBurger,
+        FoodType.CheeseLettuceBurger,
+        FoodType.CucumberBurger,
+        FoodType.CucumberCheeseBurger,
+        FoodType.MexicanBurger,
+        FoodType.MexicanCheeseBurger,
+        FoodType. MixBurgerNoCheese,
+        FoodType. OGCheeseBurger,
+        FoodType.OnionBurger,
+        FoodType.OnionCheeseBurger,
+        FoodType.SimplePatty,
+        FoodType.SimpleDoubleBurger,
+        FoodType. SimpleTripleBurger,
+        FoodType.TripleAllMixBurger,
+        FoodType. TripleBurgerWithTomato,
     };
 
         List<FoodType> available = new List<FoodType>();

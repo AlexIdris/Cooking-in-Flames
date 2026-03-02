@@ -55,27 +55,70 @@ public class CustomerMover2 : MonoBehaviour
         switch (food)
         {
 
-            case FoodType.Coffee:
-                label = "Coffee";
-                break;
-
-            case FoodType.NormalBurger:
-                label = "NormalBurger";
-                break;
-
-            case FoodType.TomatoBurger:
-                label = "TomatoBurger";
-                break;
-
-            case FoodType.PattyOnly:
-                label = "PattyOnly";
-                break;
-
             case FoodType.BaconBurger:
                 label = "BaconBurger";
                 break;
 
+            case FoodType.BaconCheeseBurger:
+                label = "BaconCheeseBurger";
+                break;
 
+            case FoodType.BurgerWithTomato:
+                label = "BurgerWithTomato";
+                break;
+
+            case FoodType.CaseOhBurger:
+                label = "CaseOhBurger";
+                break;
+
+            case FoodType.CheeseBurger:
+                label = "CheeseBurger";
+                break;
+
+
+
+            case FoodType.CheeseLettuceBurger:
+                label = "CheeseLettuceBurger";
+                break;
+            case FoodType.CucumberBurger:
+                label = "CucumberBurger";
+                break;
+            case FoodType.CucumberCheeseBurger:
+                label = "CucumberCheeseBurger";
+                break;
+            case FoodType.MexicanBurger:
+                label = "MexicanBurger";
+                break;
+            case FoodType.MexicanCheeseBurger:
+                label = "MexicanCheeseBurger";
+                break;
+            case FoodType.MixBurgerNoCheese:
+                label = "MixBurgerNoCheese";
+                break;
+            case FoodType.OGCheeseBurger:
+                label = "OGCheeseBurger";
+                break;
+            case FoodType.OnionBurger:
+                label = "OnionBurger";
+                break;
+            case FoodType.OnionCheeseBurger:
+                label = "OnionCheeseBurger";
+                break;
+            case FoodType.SimplePatty:
+                label = "SimplePatty";
+                break;
+            case FoodType.SimpleDoubleBurger:
+                label = "SimpleDoubleBurger";
+                break;
+            case FoodType.SimpleTripleBurger:
+                label = "SimpleTripleBurger";
+                break;
+            case FoodType.TripleAllMixBurger:
+                label = "TripleAllMixBurger";
+                break;
+            case FoodType.TripleBurgerWithTomato:
+                label = "TripleBurgerWithTomato";
+                break;
 
         }
 
