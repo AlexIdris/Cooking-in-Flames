@@ -7,6 +7,8 @@ public class CustomerOrderDisplay : MonoBehaviour
     public TextMeshPro orderText; // assign in prefab
     public Image orderIcon;           // assign in prefab (optional, for future)
 
+    public GameObject speechBubble;
+
     private CustomerSpawner2 spawner;
     private CustomerMover2 mover;
 
@@ -29,6 +31,9 @@ public class CustomerOrderDisplay : MonoBehaviour
 
             if (orderIcon != null)
                 orderIcon.gameObject.SetActive(true);
+
+            if (speechBubble != null)
+                speechBubble.gameObject.SetActive(true);  // <-- add this
         }
         else
         {
@@ -36,6 +41,9 @@ public class CustomerOrderDisplay : MonoBehaviour
 
             if (orderIcon != null)
                 orderIcon.gameObject.SetActive(false);
+
+            if (speechBubble != null)
+                speechBubble.gameObject.SetActive(false); // <-- add this
         }
     }
 
