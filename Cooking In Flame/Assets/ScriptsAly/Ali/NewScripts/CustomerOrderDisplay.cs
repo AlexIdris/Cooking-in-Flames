@@ -24,10 +24,14 @@ public class CustomerOrderDisplay : MonoBehaviour
 
         // Set the text
         if (orderText != null)
-            orderText.text = mover.orderedFood.ToString();
+            orderText.text = System.Text.RegularExpressions.Regex.Replace(
+    mover.orderedFood.ToString(),
+    "(\\B[A-Z])",
+    " $1"
+     );
 
         // If you later want icons, you can do:
-        
+
         if (orderIcon != null && spawner != null)
         {
             Sprite icon = spawner.GetFoodIcon(mover.orderedFood);
