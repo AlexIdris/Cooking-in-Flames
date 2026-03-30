@@ -17,6 +17,28 @@ public class CustomerOrderDisplay : MonoBehaviour
         mover = m;
     }
 
+    void Update()
+    {
+        if (spawner == null || mover == null) return;
+
+        bool isFront = (spawner.customers.Count > 0 && spawner.customers[0] == mover);
+
+        if (isFront)
+        {
+            orderText.gameObject.SetActive(true);
+
+            if (orderIcon != null)
+                orderIcon.gameObject.SetActive(true);
+        }
+        else
+        {
+            orderText.gameObject.SetActive(false);
+
+            if (orderIcon != null)
+                orderIcon.gameObject.SetActive(false);
+        }
+    }
+
     // Call this whenever the order changes
     public void UpdateOrderDisplay()
     {
