@@ -28,14 +28,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973520722861799320}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0.117017336, y: 0, z: 0, w: 0.9931299}
   m_LocalPosition: {x: -0.4699998, y: -0.099999905, z: 0}
-  m_LocalScale: {x: 0.15, y: 0.15, z: 0.15}
+  m_LocalScale: {x: 0.13, y: 0.13, z: 0.13}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4333333157886546231}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -13.44, y: 0, z: 0}
 --- !u!212 &4659708595612697533
 SpriteRenderer:
   serializedVersion: 2
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 6
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2070377620, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -109,9 +109,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 0.1
+  allowedDropTags:
+  - Trash
 --- !u!58 &5716250878754805791
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -255,7 +258,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -242758697, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -282,9 +285,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
 --- !u!58 &2177088549621377902
 CircleCollider2D:
   m_ObjectHideFlags: 0

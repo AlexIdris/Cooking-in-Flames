@@ -1,61 +1,46 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Tracks runtime-spawned GameObjects that are currently loose (not held by the player).
+/// Call <see cref="DeleteAllLooseSpawns"/> on scene transition or round reset.
+/// </summary>
 public class SpawnCleanupManager : MonoBehaviour
 {
-    private static List<GameObject> looseSpawnedObjects = new List<GameObject>();
+    private static readonly List<GameObject> looseObjects = new List<GameObject>();
 
-    // Called by Spawnable2D when spawning
-    public static void RegisterSpawnedObject(GameObject spawned)
+    /// <summary>Registers a freshly spawned object as loose. Call immediately after Instantiate.</summary>
+    public static void RegisterSpawnedObject(GameObject obj)
     {
-        if (spawned != null && !looseSpawnedObjects.Contains(spawned))
-        {
-            looseSpawnedObjects.Add(spawned);
-        }
+        if (obj != null && !looseObjects.Contains(obj))
+            looseObjects.Add(obj);
     }
 
-    // Called when picked up
+    /// <summary>Removes an object from the loose list while it is being held.</summary>
     public static void MarkAsHeld(GameObject obj)
     {
-        if (obj != null)
-        {
-            looseSpawnedObjects.Remove(obj);
-        }
+        if (obj != null) looseObjects.Remove(obj);
     }
 
-    // Called when dropped
+    /// <summary>Returns an object to the loose list after it has been dropped.</summary>
     public static void MarkAsDropped(GameObject obj)
     {
-        if (obj != null && !looseSpawnedObjects.Contains(obj))
-        {
-            looseSpawnedObjects.Add(obj);
-        }
+        if (obj != null && !looseObjects.Contains(obj))
+            looseObjects.Add(obj);
     }
 
-    // Call this to delete everything not currently held
+    /// <summary>Destroys every loose object that is not currently held, then clears the list.</summary>
     public static void DeleteAllLooseSpawns()
     {
-        var toDelete = new List<GameObject>(looseSpawnedObjects);
-
-        foreach (var obj in toDelete)
+        foreach (GameObject obj in new List<GameObject>(looseObjects))
         {
-            if (obj != null)
-            {
-                Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
-                if (pickup == null || !pickup.isHeld)
-                {
-                    Destroy(obj);
-                }
-            }
+            if (obj == null) continue;
+            Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
+            if (pickup != null && pickup.IsHeld) continue;
+            Destroy(obj);
         }
-
-        looseSpawnedObjects.Clear();
-        Debug.Log("All loose (not held) spawned objects deleted.");
+        looseObjects.Clear();
     }
 
-    // Optional: auto-clean when scene unloads or game ends
-    void OnDestroy()
-    {
-        DeleteAllLooseSpawns();
-    }
+    void OnDestroy() => DeleteAllLooseSpawns();
 }

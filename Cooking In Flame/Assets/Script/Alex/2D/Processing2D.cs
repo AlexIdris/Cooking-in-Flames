@@ -1,167 +1,208 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Place on a machine with a trigger Collider2D and AudioSource.
+/// Accepts a specific input prefab, runs through a sequence of stage prefabs
+/// with configurable timing, and produces a final pickupable output.
+/// Moving the active stage object aborts the sequence.
+/// </summary>
 [RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(AudioSource))]
 public class Processing2D : MonoBehaviour
 {
-    [Header("Input Prefab (Only this one triggers processing)")]
-    [Tooltip("ONLY objects matching this prefab will start processing")]
-    public GameObject inputPrefab;  // ← Specific assigned prefab
+    [Header("Input")]
+    [Tooltip("Only items whose name contains this prefab's name will start processing.")]
+    public GameObject inputPrefab;
 
-    [Header("Processing Stages")]
-    [Tooltip("List of prefabs to spawn in order. Last one stays forever.")]
-    public GameObject[] processingStages = new GameObject[4];  // e.g., 0=raw, 1=half, 2=almost, 3=done
+    [Header("Stages")]
+    [Tooltip("Prefabs spawned in order. Index 0 = first stage, last = final pickupable output.")]
+    public GameObject[] processingStages = new GameObject[4];
+    [Tooltip("Seconds spent on each stage before advancing.")]
+    public float timePerStage = 5f;
 
-    [Header("Timing")]
-    public float timePerStage = 5f;  // Seconds between stages
-
-    [Header("Spawn Settings")]
-    [Tooltip("Optional explicit spawn point. If null, uses this object's position + offset.")]
-    public Transform spawnPoint;
+    [Header("Spawn Transform")]
+    [Tooltip("World-space offset from this machine where stage objects appear.")]
     public Vector2 spawnOffset = Vector2.zero;
+    [Tooltip("Z-axis rotation applied to every stage object at spawn. 0 = upright.")]
+    [Range(-180f, 180f)] public float spawnRotationZ = 0f;
+    [Tooltip("Uniform scale multiplier applied to every stage object. 1 = native prefab size.")]
+    [Range(0.05f, 3f)]   public float stageScale = 1f;
 
-    private Collider2D triggerCollider;
-    private GameObject currentProcessedObject;
-    private int currentStageIndex = -1;
-    private bool isProcessing = false;
-    private Coroutine processingCoroutine;
+    [Header("Placement Lock")]
+    [Tooltip("Pins each intermediate stage to its spawn pose and blocks player pickup.\n" +
+             "Released automatically when processing completes.")]
+    public bool lockPlacementDuringProcessing = true;
+    [Tooltip("Distance a stage object must move from its spawn point to abort processing.\n" +
+             "Set to 0 to disable displacement detection.")]
+    [Min(0f)] public float interruptMoveThreshold = 0.15f;
+
+    [Header("Audio")]
+    [Tooltip("Loops from processing start until all stages complete. Stops on abort.")]
+    public AudioClip processingLoopClip;
+    [Range(0f, 1f)] public float processingVolume = 1f;
+    [Tooltip("One-shot played only on successful completion. Never plays on abort.")]
+    public AudioClip completionClip;
+
+    private Collider2D   triggerCollider;
+    private AudioSource  audioSource;
+    private GameObject   currentStageObj;
+    private Pickupable2D currentStagePick;
+    private Rigidbody2D  currentStageRb;
+    private Vector3      pinnedPosition;
+    private Quaternion   pinnedRotation;
+    private bool         stageLockActive;
+    private int          currentStageIndex = -1;
+    private bool         isProcessing;
+    private Coroutine    processingCoroutine;
 
     void Awake()
     {
         triggerCollider = GetComponent<Collider2D>();
+        audioSource     = GetComponent<AudioSource>();
+
         if (triggerCollider == null || !triggerCollider.isTrigger)
-        {
-            Debug.LogError($"{name}: Needs Collider2D with Is Trigger = true", this);
-            enabled = false;
-        }
-
+        { Debug.LogError($"[Processing2D] {name}: Collider2D must have 'Is Trigger' = true.", this); enabled = false; }
         if (inputPrefab == null)
-        {
-            Debug.LogError($"{name}: Assign the specific input prefab!", this);
-            enabled = false;
-        }
+        { Debug.LogError($"[Processing2D] {name}: Assign the input prefab.", this); enabled = false; }
+
+        audioSource.playOnAwake = false;
+        audioSource.loop        = false;
+        audioSource.Stop();
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void Update()
     {
-        if (isProcessing || other == null) return;
-
-        GameObject enteredObj = other.gameObject;
-
-        // Only work on the SPECIFIC assigned prefab
-        if (enteredObj.name.Contains(inputPrefab.name))
-        {
-            StartProcessing(enteredObj);
-        }
+        if (!isProcessing || currentStageObj == null || interruptMoveThreshold <= 0f) return;
+        if (Vector3.Distance(currentStageObj.transform.position, pinnedPosition) > interruptMoveThreshold)
+            AbortProcessing();
     }
 
-    private void StartProcessing(GameObject inputObj)
+    void LateUpdate()
+    {
+        if (!stageLockActive || currentStageObj == null) return;
+        currentStageObj.transform.SetPositionAndRotation(pinnedPosition, pinnedRotation);
+    }
+
+    void OnTriggerEnter2D(Collider2D other) { if (!isProcessing && other != null) TryStart(other.gameObject); }
+    void OnTriggerStay2D(Collider2D other)  { if (!isProcessing && other != null) TryStart(other.gameObject); }
+
+    private void TryStart(GameObject obj)
+    {
+        if (!obj.name.Contains(inputPrefab.name)) return;
+        Pickupable2D p = obj.GetComponent<Pickupable2D>();
+        if (p != null && p.IsHeld) return;
+        BeginProcessing(obj);
+    }
+
+    private void BeginProcessing(GameObject inputObj)
     {
         isProcessing = true;
-
-        // Destroy the input immediately
+        SpawnCleanupManager.MarkAsHeld(inputObj);
         Destroy(inputObj);
-
-        // Start from stage 0 (first in list)
         currentStageIndex = 0;
-        SpawnCurrentStage();
-
-        // Begin stage timer sequence
+        SpawnStage();
+        StartAudio();
         processingCoroutine = StartCoroutine(ProcessingSequence());
     }
 
     private IEnumerator ProcessingSequence()
     {
-        while (currentStageIndex < processingStages.Length - 1)  // Stop at last prefab
+        while (currentStageIndex < processingStages.Length - 1)
         {
             yield return new WaitForSeconds(timePerStage);
+            if (currentStageObj == null) { AbortProcessing(); yield break; }
             currentStageIndex++;
-            SpawnCurrentStage();
+            SpawnStage();
         }
 
-        // Processing complete – last stage stays forever
-        isProcessing = false;
+        ReleaseLock();
+        StopAudio();
+        if (completionClip != null) audioSource.PlayOneShot(completionClip, processingVolume);
+        isProcessing        = false;
         processingCoroutine = null;
-        Debug.Log($"{name}: Processing complete – final stage {processingStages.Length - 1} reached.");
     }
 
-    private void SpawnCurrentStage()
+    private void AbortProcessing()
     {
-        // Destroy previous stage
-        if (currentProcessedObject != null)
-        {
-            Destroy(currentProcessedObject);
-        }
-
-        // Spawn current stage
-        if (currentStageIndex >= 0 && currentStageIndex < processingStages.Length)
-        {
-            Vector2 spawnPos;
-
-            if (spawnPoint != null)
-            {
-                spawnPos = spawnPoint.position;
-            }
-            else
-            {
-                spawnPos = (Vector2)transform.position + spawnOffset;
-            }
-
-            currentProcessedObject = Instantiate(processingStages[currentStageIndex], spawnPos, Quaternion.identity);
-            Debug.Log($"{name}: Stage {currentStageIndex + 1}/{processingStages.Length}");
-        }
-    }
-
-    /// <summary>
-    /// Reset processing and stop producing more prefabs.
-    /// Called when the spawned prefab is removed.
-    /// </summary>
-    private void ResetProcessing()
-    {
-        if (processingCoroutine != null)
-        {
-            StopCoroutine(processingCoroutine);
-            processingCoroutine = null;
-        }
-
-        if (currentProcessedObject != null)
-        {
-            Destroy(currentProcessedObject);
-            currentProcessedObject = null;
-        }
-
+        if (processingCoroutine != null) { StopCoroutine(processingCoroutine); processingCoroutine = null; }
+        ReleaseLock();
+        StopAudio();
+        isProcessing      = false;
         currentStageIndex = -1;
-        isProcessing = false;
-
-        Debug.Log($"{name}: Processing reset because spawned prefab was removed.");
     }
 
-    void Update()
+    private void SpawnStage()
     {
-        // Unity treats destroyed objects as == null,
-        // so this will be true if the current stage prefab is removed externally.
-        if (isProcessing && currentProcessedObject == null)
+        if (currentStageObj != null)
         {
-            ResetProcessing();
+            ReleaseLock();
+            SpawnCleanupManager.MarkAsHeld(currentStageObj);
+            Destroy(currentStageObj);
+            currentStageObj  = null;
+            currentStagePick = null;
+            currentStageRb   = null;
         }
+
+        if (currentStageIndex < 0 || currentStageIndex >= processingStages.Length) return;
+        if (processingStages[currentStageIndex] == null) return;
+
+        currentStageObj = Instantiate(
+            processingStages[currentStageIndex],
+            (Vector2)transform.position + spawnOffset,
+            Quaternion.Euler(0f, 0f, spawnRotationZ));
+
+        currentStageObj.transform.localScale *= stageScale;
+        pinnedPosition   = currentStageObj.transform.position;
+        pinnedRotation   = currentStageObj.transform.rotation;
+        currentStagePick = currentStageObj.GetComponent<Pickupable2D>();
+        currentStageRb   = currentStageObj.GetComponent<Rigidbody2D>();
+
+        bool isFinal = currentStageIndex == processingStages.Length - 1;
+        if (lockPlacementDuringProcessing && !isFinal) ApplyLock();
+        else stageLockActive = false;
+
+        SpawnCleanupManager.RegisterSpawnedObject(currentStageObj);
     }
 
-    // Draw waypoint indicator in the Scene view
-    void OnDrawGizmos()
+    private void ApplyLock()
     {
-        Gizmos.color = Color.yellow;
+        stageLockActive = true;
+        if (currentStagePick != null) currentStagePick.SetProcessingLock(true);
+        if (currentStageRb   != null) currentStageRb.bodyType = RigidbodyType2D.Static;
+    }
 
-        Vector3 pos;
-        if (spawnPoint != null)
-        {
-            pos = spawnPoint.position;
-        }
-        else
-        {
-            pos = transform.position + (Vector3)spawnOffset;
-        }
+    private void ReleaseLock()
+    {
+        stageLockActive = false;
+        if (currentStagePick != null) currentStagePick.SetProcessingLock(false);
+        if (currentStageRb   != null) currentStageRb.bodyType = RigidbodyType2D.Dynamic;
+    }
 
-        Gizmos.DrawWireSphere(pos, 0.3f);
-        Gizmos.DrawLine(transform.position, pos);
+    private void StartAudio()
+    {
+        if (processingLoopClip == null) return;
+        audioSource.clip   = processingLoopClip;
+        audioSource.loop   = true;
+        audioSource.volume = processingVolume;
+        audioSource.Play();
+    }
+
+    private void StopAudio()
+    {
+        audioSource.loop = false;
+        audioSource.Stop();
+    }
+
+    void OnDestroy()
+    {
+        if (processingCoroutine != null) StopCoroutine(processingCoroutine);
+        StopAudio();
+        if (currentStageObj != null)
+        {
+            ReleaseLock();
+            SpawnCleanupManager.MarkAsHeld(currentStageObj);
+            Destroy(currentStageObj);
+        }
     }
 }

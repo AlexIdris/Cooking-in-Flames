@@ -82,7 +82,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 8
   m_MaskInteraction: 0
   m_Sprite: {fileID: -242758697, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -109,9 +109,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 0.1
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
 --- !u!58 &7912431304487525577
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -255,7 +263,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1258744875
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -242758697, guid: 201ba06553404a74d851f405e17f12e8, type: 3}
@@ -282,9 +290,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
 --- !u!58 &6769137712874262060
 CircleCollider2D:
   m_ObjectHideFlags: 0

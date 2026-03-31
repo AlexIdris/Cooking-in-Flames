@@ -1,184 +1,172 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Cursor-as-hand controller. Moves a sprite to the mouse position in world space,
+/// handles hover glow, single-click pickup and tag-gated drop for Pickupable2D items.
+/// Works correctly with perspective cameras via z=0 plane raycasting.
+/// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class PlayerHand2D : MonoBehaviour
 {
-    [Header("Pickup Settings")]
-    public float holdDistance = 0.8f;
-    public LayerMask pickupLayer;
-
-    [Header("Cursor Icon")]
+    [Header("Cursor")]
     public Sprite cursorSprite;
-    public Color cursorColor = Color.white;
-    [Range(0.1f, 2f)]
-    public float cursorScale = 0.6f;
+    public Color  cursorColor = Color.white;
+    [Range(0.1f, 3f)] public float cursorScale = 0.6f;
 
-    [Header("Hover Feedback")]
-    public float hoverScale = 1.15f;
+    [Header("Pickup")]
+    [Tooltip("Layer(s) containing Pickupable2D objects.")]
+    public LayerMask pickupLayer;
+    [Tooltip("Overlap radius used to detect valid drop surfaces.")]
+    public float dropCheckRadius = 0.5f;
 
-    [Header("Debug Override (for Scene view gizmo drag during Play)")]
-    [Tooltip("If true, script skips setting position → allows manual drag in Scene view while playing")]
-    public bool manualOverride = false;
-
-    private Camera mainCam;
+    private Camera         mainCam;
     private SpriteRenderer myRenderer;
-    private Pickupable2D heldItem;
-    private Pickupable2D hoveredItem;
+    private Pickupable2D   heldItem;
+    private Pickupable2D   hoveredItem;
+    private bool           dropSuppressedThisFrame;
 
-    // Plane at z = 0 — change this if your sprites are at different Z
-    private Plane interactionPlane = new Plane(Vector3.forward, Vector3.zero);
+    private readonly Plane worldPlane = new Plane(Vector3.forward, Vector3.zero);
 
     void Awake()
     {
-        mainCam = Camera.main;
+        mainCam    = Camera.main;
         myRenderer = GetComponent<SpriteRenderer>();
-
-        if (mainCam == null)
-        {
-            Debug.LogError("[PlayerHand2D] No MainCamera tagged 'MainCamera' found!", this);
-            enabled = false;
-            return;
-        }
+        if (mainCam == null) { Debug.LogError("[PlayerHand2D] No MainCamera found.", this); enabled = false; }
     }
 
     void Start()
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Confined;  // Keeps input inside Game view
-
+        Cursor.visible   = false;
+        Cursor.lockState = CursorLockMode.Confined;
         if (cursorSprite != null && myRenderer != null)
         {
-            myRenderer.sprite = cursorSprite;
-            myRenderer.color = cursorColor;
+            myRenderer.sprite    = cursorSprite;
+            myRenderer.color     = cursorColor;
             transform.localScale = Vector3.one * cursorScale;
         }
-
-        Debug.Log("[PlayerHand2D] Cursor ready. Camera mode: " + 
-                  (mainCam.orthographic ? "Orthographic" : "Perspective"));
     }
 
     void Update()
     {
         if (Mouse.current == null || mainCam == null) return;
 
-        // ── Get mouse position in screen space ───────────────────────────────
-        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+        Vector3 worldPos = GetMouseWorldPosition();
+        transform.position = worldPos;
 
-        // ── Convert to world position (works for BOTH Ortho & Perspective) ───
-        Vector3 mouseWorldPos;
-
-        if (mainCam.orthographic)
-        {
-            // Orthographic: simple direct conversion
-            mouseWorldPos = mainCam.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, mainCam.nearClipPlane));
-            mouseWorldPos.z = 0f; // force to our plane
-        }
+        if (heldItem != null)
+            heldItem.transform.position = worldPos;
         else
+            UpdateHover(worldPos);
+
+        if (!dropSuppressedThisFrame && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            // Perspective: cast ray and intersect with z=0 plane
-            Ray ray = mainCam.ScreenPointToRay(mouseScreenPos);
-            if (interactionPlane.Raycast(ray, out float enter))
-            {
-                mouseWorldPos = ray.GetPoint(enter);
-            }
-            else
-            {
-                // Fallback: use near clip plane (rare)
-                mouseWorldPos = mainCam.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, mainCam.nearClipPlane));
-                mouseWorldPos.z = 0f;
-            }
+            if (heldItem != null) TryDrop();
+            else if (hoveredItem != null) PickUp(hoveredItem);
         }
 
-        // Apply position (unless debugging with gizmo)
-        if (!manualOverride)
-        {
-            transform.position = mouseWorldPos;
-        }
-
-        // Optional debug log (remove later)
-        // if (Time.frameCount % 60 == 0)
-        //     Debug.Log($"Cursor at world: {mouseWorldPos}");
-
-        // Hover logic only when not holding
-        if (heldItem == null)
-        {
-            HandleHover(mouseWorldPos);
-        }
-
-        // Hold LMB → pickup if hovering
-        if (Mouse.current.leftButton.isPressed)
-        {
-            if (heldItem == null && hoveredItem != null)
-            {
-                PickupItem(hoveredItem);
-            }
-        }
-        // Release LMB → drop
-        else if (Mouse.current.leftButton.wasReleasedThisFrame)
-        {
-            if (heldItem != null)
-            {
-                DropItem();
-            }
-        }
-
-        // ESC to unlock cursor for Editor use
-        if (Keyboard.current?.escapeKey.wasPressedThisFrame == true)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+        dropSuppressedThisFrame = false;
     }
 
-    private void HandleHover(Vector2 mousePos)
-    {
-        if (hoveredItem != null)
-        {
-            hoveredItem.SetHovered(false);
-            hoveredItem = null;
-        }
+    // ── Public API ────────────────────────────────────────────────────────────
 
-        Collider2D hit = Physics2D.OverlapPoint(mousePos, pickupLayer);
-        if (hit != null)
-        {
-            Pickupable2D target = hit.GetComponent<Pickupable2D>();
-            if (target != null && target.CanBePickedUp())
-            {
-                hoveredItem = target;
-                target.SetHovered(true);
-            }
-        }
-    }
+    /// <summary>True while an item is being carried.</summary>
+    public bool IsHoldingItem => heldItem != null;
 
-    private void PickupItem(Pickupable2D item)
-    {
-        heldItem = item;
-        item.OnPickup();
+    /// <summary>Returns the currently held Pickupable2D, or null.</summary>
+    public Pickupable2D GetHeldItem() => heldItem;
 
-        item.transform.SetParent(transform);
-        item.transform.localPosition = Vector2.right * holdDistance;
-        item.transform.localRotation = Quaternion.identity;
+    /// <summary>
+    /// Prevents the LMB drop/pickup action firing this frame.
+    /// Called by IngredientShrinker2D or IngredientMerger2D when they consume the click.
+    /// </summary>
+    public void SuppressDropThisFrame() => dropSuppressedThisFrame = true;
 
-        if (hoveredItem == item)
-        {
-            hoveredItem.SetHovered(false);
-            hoveredItem = null;
-        }
-    }
-
-    private void DropItem()
+    /// <summary>
+    /// Immediately drops the held item unconditionally (no tag check).
+    /// Called by IngredientMerger2D after it has already validated the drop surface,
+    /// so PlayerHand2D does not need to repeat the surface check on the same click.
+    /// </summary>
+    public void DropHeldItem()
     {
         if (heldItem == null) return;
-
-        heldItem.transform.SetParent(null);
         heldItem.OnDrop();
         heldItem = null;
+        dropSuppressedThisFrame = true; // prevent the normal LMB path from also firing
     }
 
-    void OnDrawGizmosSelected()
+    /// <summary>
+    /// Immediately picks up <paramref name="target"/>, dropping whatever is
+    /// currently held. Used by Spawnable2D to hand off a freshly spawned item.
+    /// </summary>
+    public void ForcePickUp(Pickupable2D target)
     {
-        Gizmos.color = heldItem != null ? Color.green : Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, 0.3f);
+        if (target == null) return;
+        if (heldItem != null) { heldItem.OnDrop(); heldItem = null; }
+        target.SetHovered(false);
+        hoveredItem = null;
+        target.OnPickup();
+        heldItem = target;
+        heldItem.transform.position = transform.position;
+    }
+
+    // ── Private ───────────────────────────────────────────────────────────────
+
+    private void PickUp(Pickupable2D target)
+    {
+        target.SetHovered(false);
+        hoveredItem = null;
+        target.OnPickup();
+        heldItem = target;
+    }
+
+    private void TryDrop()
+    {
+        Collider2D col = heldItem.GetComponent<Collider2D>();
+        bool wasEnabled = col != null && col.enabled;
+        if (col != null) col.enabled = true;
+
+        bool dropped = false;
+        foreach (Collider2D hit in Physics2D.OverlapCircleAll(heldItem.transform.position, dropCheckRadius))
+        {
+            if (hit.gameObject == heldItem.gameObject) continue;
+            foreach (string tag in heldItem.allowedDropTags)
+            {
+                if (!hit.CompareTag(tag)) continue;
+                heldItem.OnDrop();
+                heldItem = null;
+                dropped  = true;
+                break;
+            }
+            if (dropped) break;
+        }
+
+        if (!dropped && col != null) col.enabled = wasEnabled;
+    }
+
+    private void UpdateHover(Vector2 mousePos)
+    {
+        if (hoveredItem != null) { hoveredItem.SetHovered(false); hoveredItem = null; }
+        Collider2D hit = Physics2D.OverlapPoint(mousePos, pickupLayer);
+        if (hit == null) return;
+        Pickupable2D target = hit.GetComponent<Pickupable2D>();
+        if (target != null && target.CanBePickedUp()) { hoveredItem = target; target.SetHovered(true); }
+    }
+
+    private Vector3 GetMouseWorldPosition()
+    {
+        Vector2 screen = Mouse.current.position.ReadValue();
+        Ray ray = mainCam.ScreenPointToRay(screen);
+        if (worldPlane.Raycast(ray, out float dist)) return ray.GetPoint(dist);
+        Vector3 p = mainCam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, mainCam.nearClipPlane));
+        p.z = 0f;
+        return p;
+    }
+
+    void OnDisable()
+    {
+        Cursor.visible   = true;
+        Cursor.lockState = CursorLockMode.None;
+        if (hoveredItem != null) { hoveredItem.SetHovered(false); hoveredItem = null; }
     }
 }

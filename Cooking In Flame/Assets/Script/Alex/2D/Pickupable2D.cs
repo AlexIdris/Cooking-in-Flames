@@ -1,119 +1,135 @@
 using UnityEngine;
+using UnityEngine.InputSystem;   // Fixed 'Mouse' error
 using System.Collections;
 
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Collider2D))]
 public class Pickupable2D : MonoBehaviour
 {
-    [Header("Hover Glow")]
+    [Header("Visuals")]
     public Color normalColor = Color.white;
-    public Color hoverColor = new Color(0.6f, 1f, 1f, 1f);
-    public float hoverScale = 1.15f;
-    [Range(4f, 20f)]
-    public float smoothSpeed = 10f;
+    public Color hoverColor  = new Color(0.55f, 1f,  1f,  1f);
+    public Color heldColor   = new Color(1f,    1f,  0.55f, 1f);
+    public Color lockedColor = new Color(1f,    0.6f, 0.6f, 1f);
+    public float hoverScale  = 1.15f;
+    [Range(4f, 24f)] public float smoothSpeed = 12f;
 
-    [Header("Auto-Destroy After Placement")]
-    [Tooltip("Time in seconds before this object deletes itself after being dropped/placed")]
-    [Range(0.1f, 60f)]
-    public float destroyAfterPlaced = 3f;
+    [Header("Allowed Drop Destinations")]
+    [Tooltip("Item can only be released inside a trigger whose tag is in this list.")]
+    public string[] allowedDropTags = { "plate", "pot", "pan", "trash", "customer", "coffee machine" };
 
-    // FIXED: Made public so other scripts (e.g. SpawnCleanupManager) can read it
-    public bool isHeld = false;
+    [Header("Audio")]
+    [Tooltip("Sound that plays every time LMB is clicked (pickup or drop attempt)")]
+    public AudioClip clickSound;
+
+    /// <summary>True while this item is carried by the player.</summary>
+    public bool IsHeld { get; private set; }
+
+    /// <summary>True while a Processing2D machine holds this stage locked in place.</summary>
+    public bool IsProcessingLocked { get; private set; }
 
     private SpriteRenderer spriteRend;
-    private Collider2D myCollider;
-    private Vector3 originalScale;
-    private bool targetHovered = false;
+    private Collider2D     myCollider;
+    private Vector3        originalScale;
+    private Color          targetColor;
+    private Vector3        targetScale;
 
     void Awake()
     {
-        spriteRend = GetComponent<SpriteRenderer>();
-        myCollider = GetComponent<Collider2D>();
-
+        spriteRend    = GetComponent<SpriteRenderer>();
+        myCollider    = GetComponent<Collider2D>();
         originalScale = transform.localScale;
-
-        if (spriteRend == null)
-        {
-            Debug.LogError($"{name}: Missing SpriteRenderer!", this);
-        }
-    }
-
-    void Start()
-    {
-        ResetVisuals();
+        targetColor   = normalColor;
+        targetScale   = originalScale;
+        ApplyVisuals(normalColor, originalScale);
     }
 
     void Update()
     {
-        SmoothTransition();
+        spriteRend.color     = Color.Lerp(spriteRend.color,     targetColor, smoothSpeed * Time.deltaTime);
+        transform.localScale = Vector3.Lerp(transform.localScale, targetScale, smoothSpeed * Time.deltaTime);
     }
 
-    public bool CanBePickedUp()
-    {
-        return !isHeld;
-    }
+    // ── Called by PlayerHand2D ────────────────────────────────────────────────
+    /// <summary>Returns true when the item is idle and available to be picked up.</summary>
+    public bool CanBePickedUp() => !IsHeld && !IsProcessingLocked;
 
-    public void OnPickup()
-    {
-        isHeld = true;
-        SetTargetHovered(false);
-
-        if (myCollider != null)
-        {
-            myCollider.enabled = false;
-        }
-    }
-
-    public void OnDrop()
-    {
-        isHeld = false;
-        ResetVisuals();
-
-        if (myCollider != null)
-        {
-            myCollider.enabled = true;
-        }
-
-        // Start self-destroy timer when dropped/placed
-        if (destroyAfterPlaced > 0f)
-        {
-            StartCoroutine(DestroyAfterDelay(destroyAfterPlaced));
-        }
-    }
-
+    /// <summary>Applies hover glow. Ignored while held or processing-locked.</summary>
     public void SetHovered(bool hovered)
     {
-        SetTargetHovered(hovered && !isHeld);
+        if (IsHeld || IsProcessingLocked) return;
+        targetColor = hovered ? hoverColor : normalColor;
+        targetScale = hovered ? originalScale * hoverScale : originalScale;
     }
 
-    private void SetTargetHovered(bool hovered)
+    /// <summary>Marks the item as held: disables its collider and notifies the cleanup manager.</summary>
+    public void OnPickup()
     {
-        targetHovered = hovered;
+        IsHeld             = true;
+        myCollider.enabled = false;
+        targetColor        = heldColor;
+        targetScale        = originalScale;
+        SpawnCleanupManager.MarkAsHeld(gameObject);
+
+        // Play click sound on pickup
+        PlayClickSound();
     }
 
-    private void SmoothTransition()
+    /// <summary>Marks the item as dropped: re-enables its collider and restores visuals.</summary>
+    public void OnDrop()
     {
-        if (spriteRend == null) return;
+        IsHeld             = false;
+        myCollider.enabled = true;
+        ApplyVisuals(normalColor, originalScale);
+        targetColor = normalColor;
+        targetScale = originalScale;
+        SpawnCleanupManager.MarkAsDropped(gameObject);
 
-        Color targetC = targetHovered ? hoverColor : normalColor;
-        spriteRend.color = Color.Lerp(spriteRend.color, targetC, smoothSpeed * Time.deltaTime);
-
-        Vector3 targetS = targetHovered ? originalScale * hoverScale : originalScale;
-        transform.localScale = Vector3.Lerp(transform.localScale, targetS, smoothSpeed * Time.deltaTime);
+        // Play click sound on drop attempt
+        PlayClickSound();
     }
 
-    private void ResetVisuals()
+    // ── Called by IngredientShrinker2D ────────────────────────────────────────
+    /// <summary>
+    /// Updates the internal scale baseline after an external shrink so OnDrop,
+    /// SetHovered, and the smooth-lerp all reference the new smaller size.
+    /// Call immediately after setting transform.localScale to the new value.
+    /// </summary>
+    public void NotifyShrink(Vector3 newScale)
     {
-        if (spriteRend != null)
+        originalScale = newScale;
+        targetScale   = newScale;
+    }
+
+    // ── Called by Processing2D ────────────────────────────────────────────────
+    /// <summary>
+    /// Engages (true) or releases (false) the processing lock.
+    /// While locked: pickup is blocked and the item tints to lockedColor.
+    /// On release: item becomes pickupable again and reverts to normalColor.
+    /// </summary>
+    public void SetProcessingLock(bool locked)
+    {
+        IsProcessingLocked = locked;
+        Color  col   = locked ? lockedColor : normalColor;
+        Vector3 scale = transform.localScale;
+        ApplyVisuals(col, scale);
+        targetColor = col;
+        targetScale = scale;
+    }
+
+    // ── Audio Helper ──────────────────────────────────────────────────────────
+    private void PlayClickSound()
+    {
+        if (clickSound != null)
         {
-            spriteRend.color = normalColor;
-            transform.localScale = originalScale;
+            AudioSource.PlayClipAtPoint(clickSound, transform.position);
         }
     }
 
-    private IEnumerator DestroyAfterDelay(float delay)
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    private void ApplyVisuals(Color color, Vector3 scale)
     {
-        yield return new WaitForSeconds(delay);
-        Destroy(gameObject);
-        Debug.Log($"{name} auto-destroyed after {delay}s (placed down)");
+        if (spriteRend) spriteRend.color = color;
+        transform.localScale = scale;
     }
 }
