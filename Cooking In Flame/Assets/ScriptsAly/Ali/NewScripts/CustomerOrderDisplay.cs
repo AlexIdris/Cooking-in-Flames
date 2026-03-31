@@ -7,6 +7,8 @@ public class CustomerOrderDisplay : MonoBehaviour
     public TextMeshPro orderText; // assign in prefab
     public Image orderIcon;           // assign in prefab (optional, for future)
 
+    public GameObject speechBubble;
+
     private CustomerSpawner2 spawner;
     private CustomerMover2 mover;
 
@@ -17,6 +19,34 @@ public class CustomerOrderDisplay : MonoBehaviour
         mover = m;
     }
 
+    void Update()
+    {
+        if (spawner == null || mover == null) return;
+
+        bool isFront = (spawner.customers.Count > 0 && spawner.customers[0] == mover);
+
+        if (isFront)
+        {
+            orderText.gameObject.SetActive(true);
+
+            if (orderIcon != null)
+                orderIcon.gameObject.SetActive(true);
+
+            if (speechBubble != null)
+                speechBubble.gameObject.SetActive(true);  // <-- add this
+        }
+        else
+        {
+            orderText.gameObject.SetActive(false);
+
+            if (orderIcon != null)
+                orderIcon.gameObject.SetActive(false);
+
+            if (speechBubble != null)
+                speechBubble.gameObject.SetActive(false); // <-- add this
+        }
+    }
+
     // Call this whenever the order changes
     public void UpdateOrderDisplay()
     {
@@ -24,10 +54,14 @@ public class CustomerOrderDisplay : MonoBehaviour
 
         // Set the text
         if (orderText != null)
-            orderText.text = mover.orderedFood.ToString();
+            orderText.text = System.Text.RegularExpressions.Regex.Replace(
+    mover.orderedFood.ToString(),
+    "(\\B[A-Z])",
+    " $1"
+     );
 
         // If you later want icons, you can do:
-        
+
         if (orderIcon != null && spawner != null)
         {
             Sprite icon = spawner.GetFoodIcon(mover.orderedFood);
