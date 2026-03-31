@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 8479586306319427497}
   m_Layer: 0
   m_Name: Customer 1
-  m_TagString: Untagged
+  m_TagString: Customer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -135,8 +135,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerMover2
   moveSpeed: 3
   scaleSpeed: 2
-  orderedFood: 0
+  orderedFood: 18
   orderText: {fileID: 4176463075966667298}
+  reactionDuration: 3
   spawner: {fileID: 0}
   currentCharacter:
     characterName: 

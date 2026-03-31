@@ -7,6 +7,13 @@ TagManager:
   - Food
   - Cookable
   - Ingredient
+  - Plate
+  - Customer
+  - Coffee Machine
+  - Pan
+  - Pot
+  - Trash
+  - ingredient
   layers:
   - Default
   - TransparentFX
