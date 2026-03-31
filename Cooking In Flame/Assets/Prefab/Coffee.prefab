@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.18, y: 0, z: 0}
-  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
+  m_LocalScale: {x: 0.045, y: 0.045, z: 0.045}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1891989575
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 4
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 57ec3b3d64252b1408b93e563354d71b, type: 3}
@@ -108,9 +108,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.1
   smoothSpeed: 7.21
-  destroyAfterPlaced: 1
+  allowedDropTags:
+  - Trash
+  - Customer
 --- !u!50 &4984784320331708971
 Rigidbody2D:
   serializedVersion: 5
