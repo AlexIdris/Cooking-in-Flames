@@ -291,10 +291,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!58 &7890455940778310117
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -466,10 +474,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!58 &527356475165131208
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -612,10 +628,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!1 &6391760402875834110
 GameObject:
   m_ObjectHideFlags: 0
@@ -824,10 +848,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 0.1
-  isHeld: 0
+  allowedDropTags:
+  - Trash
+  - Customer
+  clickSound: {fileID: 0}
 --- !u!61 &6273280573034691201
 BoxCollider2D:
   m_ObjectHideFlags: 0

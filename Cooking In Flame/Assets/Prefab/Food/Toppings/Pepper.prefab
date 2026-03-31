@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -1910944818296224102}
   m_Layer: 6
   m_Name: Pepper
-  m_TagString: Untagged
+  m_TagString: ingredient
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -114,12 +114,9 @@ MonoBehaviour:
   hoverScale: 1.15
   smoothSpeed: 10
   allowedDropTags:
-  - plate
-  - pot
-  - pan
-  - trash
-  - customer
-  - coffee machine
+  - Plate
+  - Trash
+  clickSound: {fileID: 0}
 --- !u!58 &5716250878754805791
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -301,6 +298,7 @@ MonoBehaviour:
   - trash
   - customer
   - coffee machine
+  clickSound: {fileID: 0}
 --- !u!58 &2177088549621377902
 CircleCollider2D:
   m_ObjectHideFlags: 0

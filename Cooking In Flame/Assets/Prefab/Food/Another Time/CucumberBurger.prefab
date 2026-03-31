@@ -199,10 +199,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!58 &5949382494122436845
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -649,10 +657,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!58 &454344224078455165
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -803,10 +819,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 0.1
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!61 &8966489727218598420
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1171,10 +1195,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pickupable2D
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 0.6, g: 1, b: 1, a: 1}
+  heldColor: {r: 1, g: 1, b: 0.55, a: 1}
+  lockedColor: {r: 1, g: 0.6, b: 0.6, a: 1}
   hoverScale: 1.15
   smoothSpeed: 10
-  destroyAfterPlaced: 3
-  isHeld: 0
+  allowedDropTags:
+  - plate
+  - pot
+  - pan
+  - trash
+  - customer
+  - coffee machine
+  clickSound: {fileID: 0}
 --- !u!1001 &47052900564500593
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1205,7 +1237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.15875404
+      value: 0.13
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalScale.y
@@ -1221,7 +1253,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.036
+      value: -0.044
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1253,6 +1285,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095538481706510229, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+      propertyPath: m_ConstrainProportionsScale
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
