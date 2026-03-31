@@ -6179,7 +6179,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &772714241
 Transform:
   m_ObjectHideFlags: 0
@@ -6491,7 +6491,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &831988297
 Transform:
   m_ObjectHideFlags: 0
@@ -9617,6 +9617,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 900102286}
     m_Modifications:
+    - target: {fileID: 824185222272165321, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 864935680830147861, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       propertyPath: m_Size.x
       value: 6.35324
@@ -10018,6 +10022,10 @@ PrefabInstance:
       value: Small Plates
       objectReference: {fileID: 0}
     - target: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -10092,9 +10100,6 @@ PrefabInstance:
       addedObject: {fileID: 1308019228}
     - targetCorrespondingSourceObject: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1308019234}
-    - targetCorrespondingSourceObject: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1308019237}
   m_SourcePrefab: {fileID: 100100000, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
 --- !u!1 &1308019227 stripped
@@ -10125,7 +10130,7 @@ MonoBehaviour:
   minInputsToPickUpOutput: 3
   storedIngredientScale: 0.25
   placedIngredientScale: 0.4
-  ingredientRowOffset: {x: 0, y: -0.55, z: 0}
+  ingredientRowOffset: {x: 0, y: -0.55, z: 4}
   ingredientInputTag: Ingredient
   ingredientRowWidth: 1
   fadeDuration: 0.5
@@ -10138,24 +10143,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8092972573627000344, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
   m_PrefabInstance: {fileID: 1308019226}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1308019234
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1308019227}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8cb02a9dc654c946b14776003bdccf8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IngredientShrinker2D
-  plateTag: plate
-  detectionRadius: 0.6
-  shrinkRate: 0.5
-  minimumScale: 0.02
-  shrinkFlashColor: {r: 0.4, g: 0.8, b: 1, a: 1}
-  flashDuration: 0.15060002
 --- !u!114 &1308019237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11776,6 +11763,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 900102286}
     m_Modifications:
+    - target: {fileID: 824185222272165321, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 864935680830147861, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       propertyPath: m_Size.x
       value: 8.467674
@@ -12177,6 +12168,10 @@ PrefabInstance:
       value: Small Plates
       objectReference: {fileID: 0}
     - target: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -12251,9 +12246,6 @@ PrefabInstance:
       addedObject: {fileID: 1514503908}
     - targetCorrespondingSourceObject: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1514503914}
-    - targetCorrespondingSourceObject: {fileID: 7790128198829154571, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1514503917}
   m_SourcePrefab: {fileID: 100100000, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
 --- !u!1 &1514503907 stripped
@@ -12284,7 +12276,7 @@ MonoBehaviour:
   minInputsToPickUpOutput: 3
   storedIngredientScale: 0.25
   placedIngredientScale: 0.4
-  ingredientRowOffset: {x: 0, y: -0.55, z: 0}
+  ingredientRowOffset: {x: 0, y: -0.55, z: 4}
   ingredientInputTag: Ingredient
   ingredientRowWidth: 1
   fadeDuration: 0.5
@@ -12297,24 +12289,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8092972573627000344, guid: a8d8a660939d95c46b177562828a9acf, type: 3}
   m_PrefabInstance: {fileID: 1514503906}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1514503914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1514503907}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8cb02a9dc654c946b14776003bdccf8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IngredientShrinker2D
-  plateTag: plate
-  detectionRadius: 0.6
-  shrinkRate: 0.5
-  minimumScale: 0.02
-  shrinkFlashColor: {r: 0.4, g: 0.8, b: 1, a: 1}
-  flashDuration: 0.15060002
 --- !u!114 &1514503917
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12440,7 +12414,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 1
-  m_Mass: 1
+  m_Mass: 0.01767146
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
@@ -16171,13 +16145,33 @@ MonoBehaviour:
     outputPrefab: {fileID: 5095460814754104817, guid: 4b82deca0167a4c48b9cd0b1700f36bb, type: 3}
     requiredTag: 
     ingredientScaleOverride: 0
+  - recipeName: 
+    requiredInputs:
+    - {fileID: 6522805717157672678, guid: 94be8c052f948b14b9bfad8740d14045, type: 3}
+    - {fileID: 3950858473262375722, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
+    - {fileID: 1167811988853725077, guid: ca8d94caaf260a44682b1ecceaef6ccb, type: 3}
+    - {fileID: 7989628512809102895, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: 1718955613476482230, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+    outputPrefab: {fileID: 7200249042702442739, guid: 491cd6e45eab6dc488cbc14cfb3e7438, type: 3}
+    requiredTag: 
+    ingredientScaleOverride: 0
+  - recipeName: 
+    requiredInputs:
+    - {fileID: 6522805717157672678, guid: 94be8c052f948b14b9bfad8740d14045, type: 3}
+    - {fileID: 3950858473262375722, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
+    - {fileID: 1167811988853725077, guid: ca8d94caaf260a44682b1ecceaef6ccb, type: 3}
+    - {fileID: 1973520722861799320, guid: 416af652b3435824e880677bf6c32aa6, type: 3}
+    - {fileID: 1718955613476482230, guid: 0068862845156e141a65e13b9a74f1f0, type: 3}
+    outputPrefab: {fileID: 2052484299538648188, guid: 5efd8dd79e0b8f14689bb655dfad8f08, type: 3}
+    requiredTag: 
+    ingredientScaleOverride: 0
   outputSpawnOffset: {x: 0, y: 0}
   minInputsToPickUpOutput: 3
   storedIngredientScale: 0.25
   placedIngredientScale: 0.4
   ingredientRowOffset: {x: 0, y: -2.75, z: 10}
   ingredientInputTag: ingredient
-  ingredientRowWidth: 5
+  ingredientRowWidth: 6
   fadeDuration: 0.4
   maxFailedPlacements: 6
   flashOnFailedPlacement: 1
