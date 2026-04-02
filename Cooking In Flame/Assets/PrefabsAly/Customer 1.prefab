@@ -244,7 +244,6 @@ MonoBehaviour:
   scaleSpeed: 2
   orderedFood: 18
   orderText: {fileID: 4176463075966667298}
-  reactionDuration: 3
   spawner: {fileID: 0}
   currentCharacter:
     characterName: 
@@ -714,8 +713,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 1.81
-  m_fontSizeBase: 1.81
+  m_fontSize: 1.31
+  m_fontSizeBase: 1.31
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
