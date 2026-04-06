@@ -4,6 +4,7 @@ using TMPro;
 
 public class CustomerMover2 : MonoBehaviour
 {
+    public bool hasReachedPoint = false;
 
     public float moveSpeed = 3f;
     public float scaleSpeed = 2f;
@@ -43,6 +44,8 @@ public class CustomerMover2 : MonoBehaviour
 
         movingToPoint = true;
         leaving = false;
+
+        hasReachedPoint = false;
     }
 
     public void SetOrder(FoodType food)
@@ -145,6 +148,7 @@ public class CustomerMover2 : MonoBehaviour
             if (Vector3.Distance(transform.position, targetPoint.position) < 0.05f)
             {
                 movingToPoint = false;
+                hasReachedPoint = true;
             }
         }
 

@@ -316,6 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 313374e7d9ca2c94a90b06b8e4523c95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerMover2
+  hasReachedPoint: 0
   moveSpeed: 3
   scaleSpeed: 2
   orderedFood: 18
@@ -386,6 +387,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerOrderDisplay
   orderText: {fileID: 4176463075966667298}
   orderIcon: {fileID: 7826330928204911813}
+  angerFill: {fileID: 4703254985163154566}
+  drainSpeed: 0.05
   speechBubble: {fileID: 857721181211491420}
 --- !u!1 &4008488179954193058
 GameObject:
@@ -421,7 +424,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 6.83, y: 1.59}
+  m_AnchoredPosition: {x: 6.705, y: 1.59}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1080244151733542826
@@ -614,7 +617,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 4
   m_TargetDisplay: 0
 --- !u!114 &9115443253013848340
 MonoBehaviour:
@@ -766,8 +769,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -7.42, y: 1.75}
-  m_SizeDelta: {x: 1.029, y: 0.663}
+  m_AnchoredPosition: {x: -7.775, y: 1.75}
+  m_SizeDelta: {x: 0.913, y: 0.663}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4344858837196180511
 MeshRenderer:

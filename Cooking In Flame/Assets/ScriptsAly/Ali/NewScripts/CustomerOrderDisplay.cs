@@ -7,6 +7,10 @@ public class CustomerOrderDisplay : MonoBehaviour
     public TextMeshPro orderText; // assign in prefab
     public Image orderIcon;           // assign in prefab (optional, for future)
 
+    public Image angerFill;
+    float anger = 1f;          // starts full
+    public float drainSpeed = 0.2f;   // how fast it drains
+
     public GameObject speechBubble;
 
     private CustomerSpawner2 spawner;
@@ -17,6 +21,11 @@ public class CustomerOrderDisplay : MonoBehaviour
     {
         spawner = s;
         mover = m;
+
+        anger = 1f;
+
+        if (angerFill != null)
+            angerFill.fillAmount = 1f;
     }
 
     void Update()
@@ -44,6 +53,15 @@ public class CustomerOrderDisplay : MonoBehaviour
 
             if (speechBubble != null)
                 speechBubble.gameObject.SetActive(false); // <-- add this
+        }
+
+        if (isFront && mover.hasReachedPoint)
+        {
+            anger -= drainSpeed * Time.deltaTime;
+            anger = Mathf.Clamp01(anger);
+
+            if (angerFill != null)
+                angerFill.fillAmount = anger;
         }
     }
 
