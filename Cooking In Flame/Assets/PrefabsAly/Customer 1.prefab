@@ -388,7 +388,7 @@ MonoBehaviour:
   orderText: {fileID: 4176463075966667298}
   orderIcon: {fileID: 7826330928204911813}
   angerFill: {fileID: 4703254985163154566}
-  drainSpeed: 0.05
+  drainSpeed: 0.2
   speechBubble: {fileID: 857721181211491420}
 --- !u!1 &4008488179954193058
 GameObject:

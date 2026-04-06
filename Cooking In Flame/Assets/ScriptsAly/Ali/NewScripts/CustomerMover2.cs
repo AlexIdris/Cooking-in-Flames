@@ -4,6 +4,8 @@ using TMPro;
 
 public class CustomerMover2 : MonoBehaviour
 {
+    bool hasFailed = false;
+
     public bool hasReachedPoint = false;
 
     public float moveSpeed = 3f;
@@ -201,6 +203,17 @@ public class CustomerMover2 : MonoBehaviour
         movingToPoint = false;
 
         StartCoroutine(DieAfterSeconds(3f));
+    }
+
+    public void FailOrder()
+    {
+        if (hasFailed) return;
+
+        hasFailed = true;
+
+        SetFace(2); // sad face (based on your setup)
+
+        LeaveAndDie(); // you already made this earlier
     }
 
     IEnumerator DieAfterSeconds(float seconds)

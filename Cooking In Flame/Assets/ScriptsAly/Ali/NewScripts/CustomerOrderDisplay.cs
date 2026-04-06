@@ -62,6 +62,11 @@ public class CustomerOrderDisplay : MonoBehaviour
 
             if (angerFill != null)
                 angerFill.fillAmount = anger;
+
+            if (anger <= 0f)
+            {
+                mover.FailOrder(); // trigger same bad reaction
+            }
         }
     }
 
