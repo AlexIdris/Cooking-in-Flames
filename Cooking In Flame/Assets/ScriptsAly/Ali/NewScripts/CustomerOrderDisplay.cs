@@ -1,31 +1,36 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class CustomerOrderDisplay : MonoBehaviour
 {
-    public TextMeshPro orderText; // assign in prefab
-    public Image orderIcon;           // assign in prefab (optional, for future)
+    public TextMeshPro orderText;
+    public Image orderIcon;
 
     public Image angerFill;
-    float anger = 1f;          // starts full
-    public float drainSpeed = 0.2f;   // how fast it drains
+    float anger = 1f;
+    public float drainSpeed = 0.2f;
 
     public GameObject speechBubble;
 
-    private CustomerSpawner2 spawner;
-    private CustomerMover2 mover;
+    public float typingSpeed = 0.05f;
+    private Coroutine typingCoroutine;
 
-    // Link this customer to its spawner and mover
+    private CustomerMover2 mover;
+    private CustomerSpawner2 spawner;
+
     public void Init(CustomerSpawner2 s, CustomerMover2 m)
     {
         spawner = s;
         mover = m;
 
         anger = 1f;
-
         if (angerFill != null)
             angerFill.fillAmount = 1f;
+
+        // Subscribe to event
+        mover.OnReachPoint += DisplayOrderTextLetterByLetter;
     }
 
     void Update()
@@ -34,26 +39,9 @@ public class CustomerOrderDisplay : MonoBehaviour
 
         bool isFront = (spawner.customers.Count > 0 && spawner.customers[0] == mover);
 
-        if (isFront)
-        {
-            orderText.gameObject.SetActive(true);
-
-            if (orderIcon != null)
-                orderIcon.gameObject.SetActive(true);
-
-            if (speechBubble != null)
-                speechBubble.gameObject.SetActive(true);  // <-- add this
-        }
-        else
-        {
-            orderText.gameObject.SetActive(false);
-
-            if (orderIcon != null)
-                orderIcon.gameObject.SetActive(false);
-
-            if (speechBubble != null)
-                speechBubble.gameObject.SetActive(false); // <-- add this
-        }
+        orderText.gameObject.SetActive(isFront);
+        if (orderIcon != null) orderIcon.gameObject.SetActive(isFront);
+        if (speechBubble != null) speechBubble.SetActive(isFront);
 
         if (isFront && mover.hasReachedPoint)
         {
@@ -65,42 +53,44 @@ public class CustomerOrderDisplay : MonoBehaviour
 
             if (anger <= 0f)
             {
-                mover.FailOrder(); // trigger same bad reaction
+                mover.FailOrder();
+            }
+        }
+        else
+        {
+            if (typingCoroutine != null)
+            {
+                StopCoroutine(typingCoroutine);
+                typingCoroutine = null;
+                orderText.text = "";
             }
         }
     }
 
-    // Call this whenever the order changes
-    public void UpdateOrderDisplay()
+    public void DisplayOrderTextLetterByLetter(CustomerMover2 mover)
     {
-        if (mover == null) return;
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
 
-        // Set the text
-        if (orderText != null)
-            orderText.text = System.Text.RegularExpressions.Regex.Replace(
-    mover.orderedFood.ToString(),
-    "(\\B[A-Z])",
-    " $1"
-     );
-
-        // If you later want icons, you can do:
-
-        if (orderIcon != null && spawner != null)
-        {
-            Sprite icon = spawner.GetFoodIcon(mover.orderedFood);
-            orderIcon.sprite = icon;
-            orderIcon.enabled = icon != null;
-        }
-        
+        typingCoroutine = StartCoroutine(TypeText(mover.orderedFood.ToString()));
     }
 
-    // Optional: clear display
+    private IEnumerator TypeText(string fullText)
+    {
+        string readable = System.Text.RegularExpressions.Regex.Replace(fullText, "(\\B[A-Z])", " $1");
+
+        orderText.text = "";
+        foreach (char c in readable)
+        {
+            orderText.text += c;
+            yield return new WaitForSeconds(typingSpeed);
+        }
+        typingCoroutine = null;
+    }
+
     public void ClearDisplay()
     {
-        if (orderText != null)
-            orderText.text = "";
-
-        if (orderIcon != null)
-            orderIcon.enabled = false;
+        if (orderText != null) orderText.text = "";
+        if (orderIcon != null) orderIcon.enabled = false;
     }
 }

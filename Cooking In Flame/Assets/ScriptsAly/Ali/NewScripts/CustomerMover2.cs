@@ -28,6 +28,10 @@ public class CustomerMover2 : MonoBehaviour
 
     private SpriteRenderer sr;
 
+    // Event for reaching the order point
+    public delegate void OnReachPointHandler(CustomerMover2 mover);
+    public event OnReachPointHandler OnReachPoint;
+
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -54,94 +58,40 @@ public class CustomerMover2 : MonoBehaviour
     {
         orderedFood = food;
 
-        // convert enum to readable text
         string label = "";
 
         switch (food)
         {
-
-            case FoodType.BaconBurger:
-                label = "Bacon Burger";
-                break;
-
-            case FoodType.BaconCheeseBurger:
-                label = "Bacon Cheese Burger";
-                break;
-
-            case FoodType.BurgerWithTomato:
-                label = "Burger With Tomato";
-                break;
-
-            case FoodType.CaseOhBurger:
-                label = "CaseOh Burger";
-                break;
-
-            case FoodType.CheeseBurger:
-                label = "Cheese Burger";
-                break;
-
-
-
-            case FoodType.CheeseLettuceBurger:
-                label = "Cheese Lettuce Burger";
-                break;
-            case FoodType.CucumberBurger:
-                label = "Cucumber Burger";
-                break;
-            case FoodType.CucumberCheeseBurger:
-                label = "Cucumber Cheese Burger";
-                break;
-            case FoodType.MexicanBurger:
-                label = "Mexican Burger";
-                break;
-            case FoodType.MexicanCheeseBurger:
-                label = "Mexican Cheese Burger";
-                break;
-            case FoodType.MixBurgerNoCheese:
-                label = "Mix Burger No Cheese";
-                break;
-            case FoodType.OGCheeseBurger:
-                label = "OG Cheese Burger";
-                break;
-            case FoodType.OnionBurger:
-                label = "Onion Burger";
-                break;
-            case FoodType.OnionCheeseBurger:
-                label = "Onion Cheese Burger";
-                break;
-            case FoodType.SimplePatty:
-                label = "Simple Patty";
-                break;
-            case FoodType.SimpleDoubleBurger:
-                label = "Simple Double Burger";
-                break;
-            case FoodType.SimpleTripleBurger:
-                label = "Simple Triple Burger";
-                break;
-            case FoodType.TripleAllMixBurger:
-                label = "Triple All Mix Burger";
-                break;
-            case FoodType.TripleBurgerWithTomato:
-                label = "Triple Burger With Tomato";
-                break;
-
+            case FoodType.BaconBurger: label = "Bacon Burger"; break;
+            case FoodType.BaconCheeseBurger: label = "Bacon Cheese Burger"; break;
+            case FoodType.BurgerWithTomato: label = "Burger With Tomato"; break;
+            case FoodType.CaseOhBurger: label = "CaseOh Burger"; break;
+            case FoodType.CheeseBurger: label = "Cheese Burger"; break;
+            case FoodType.CheeseLettuceBurger: label = "Cheese Lettuce Burger"; break;
+            case FoodType.CucumberBurger: label = "Cucumber Burger"; break;
+            case FoodType.CucumberCheeseBurger: label = "Cucumber Cheese Burger"; break;
+            case FoodType.MexicanBurger: label = "Mexican Burger"; break;
+            case FoodType.MexicanCheeseBurger: label = "Mexican Cheese Burger"; break;
+            case FoodType.MixBurgerNoCheese: label = "Mix Burger No Cheese"; break;
+            case FoodType.OGCheeseBurger: label = "OG Cheese Burger"; break;
+            case FoodType.OnionBurger: label = "Onion Burger"; break;
+            case FoodType.OnionCheeseBurger: label = "Onion Cheese Burger"; break;
+            case FoodType.SimplePatty: label = "Simple Patty"; break;
+            case FoodType.SimpleDoubleBurger: label = "Simple Double Burger"; break;
+            case FoodType.SimpleTripleBurger: label = "Simple Triple Burger"; break;
+            case FoodType.TripleAllMixBurger: label = "Triple All Mix Burger"; break;
+            case FoodType.TripleBurgerWithTomato: label = "Triple Burger With Tomato"; break;
         }
 
         SetOrderText(label);
     }
-
-    
 
     void Update()
     {
         // Move to queue position
         if (movingToPoint && targetPoint != null)
         {
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                targetPoint.position,
-                moveSpeed * Time.deltaTime
-            );
+            transform.position = Vector3.MoveTowards(transform.position, targetPoint.position, moveSpeed * Time.deltaTime);
 
             float current = transform.localScale.x;
             float newScale = Mathf.MoveTowards(current, targetScale, scaleSpeed * Time.deltaTime);
@@ -151,6 +101,9 @@ public class CustomerMover2 : MonoBehaviour
             {
                 movingToPoint = false;
                 hasReachedPoint = true;
+
+                // Trigger event for UI
+                OnReachPoint?.Invoke(this);
             }
         }
 
@@ -163,36 +116,25 @@ public class CustomerMover2 : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (spawner.customers[0] != this) return; // ignore if not front
-
+        if (spawner == null || spawner.customers.Count == 0 || spawner.customers[0] != this) return; // ignore if not front
         if (leaving) return; // ignore if already leaving
 
         FoodItem food = other.GetComponent<FoodItem>();
-        if (food == null) return; // ignore non-food objects
+        if (food == null) return;
 
-        // check if correct
         if (food.foodType == orderedFood)
-        {
             SetFace(1); // happy
-        }
         else
-        {
             SetFace(2); // sad
-        }
 
-        // destroy the food after serving
         Destroy(other.gameObject);
-
-        // leave after reaction
         LeaveAndDie();
     }
 
     public void SetOrderText(string text)
     {
         if (orderText != null)
-        {
             orderText.text = text;
-        }
     }
 
     public void LeaveAndDie()
@@ -210,10 +152,8 @@ public class CustomerMover2 : MonoBehaviour
         if (hasFailed) return;
 
         hasFailed = true;
-
-        SetFace(2); // sad face (based on your setup)
-
-        LeaveAndDie(); // you already made this earlier
+        SetFace(2);
+        LeaveAndDie();
     }
 
     IEnumerator DieAfterSeconds(float seconds)

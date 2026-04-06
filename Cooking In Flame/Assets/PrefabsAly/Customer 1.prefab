@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4146370916931599299
 RectTransform:
   m_ObjectHideFlags: 0
@@ -388,8 +388,9 @@ MonoBehaviour:
   orderText: {fileID: 4176463075966667298}
   orderIcon: {fileID: 7826330928204911813}
   angerFill: {fileID: 4703254985163154566}
-  drainSpeed: 0.2
+  drainSpeed: 0.1
   speechBubble: {fileID: 857721181211491420}
+  typingSpeed: 0.05
 --- !u!1 &4008488179954193058
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,7 +408,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8261579253514332066
 RectTransform:
   m_ObjectHideFlags: 0
@@ -616,7 +617,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: -305130425
   m_SortingOrder: 4
   m_TargetDisplay: 0
 --- !u!114 &9115443253013848340
@@ -752,7 +753,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7768533016748588763
 RectTransform:
   m_ObjectHideFlags: 0

@@ -115,7 +115,7 @@ public class CustomerSpawner2 : MonoBehaviour
         mover.SetOrder(randomFood);
 
         if (display != null)
-            display.UpdateOrderDisplay();
+            display.DisplayOrderTextLetterByLetter(mover);
     }
 
     CharacterData GetRandomCharacter()
