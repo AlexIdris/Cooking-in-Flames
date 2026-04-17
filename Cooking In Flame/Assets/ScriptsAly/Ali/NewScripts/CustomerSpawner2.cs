@@ -114,8 +114,8 @@ public class CustomerSpawner2 : MonoBehaviour
         FoodType randomFood = GetRandomOrder();
         mover.SetOrder(randomFood);
 
-        if (display != null)
-            display.DisplayOrderTextLetterByLetter(mover);
+        //if (display != null)
+        //    display.DisplayOrderTextLetterByLetter(mover);
     }
 
     CharacterData GetRandomCharacter()
@@ -154,21 +154,21 @@ public class CustomerSpawner2 : MonoBehaviour
         FoodType. BaconCheeseBurger,
         FoodType.BurgerWithTomato,
         FoodType.CaseOhBurger,
-        FoodType.CheeseBurger,
-        FoodType.CheeseLettuceBurger,
-        FoodType.CucumberBurger,
-        FoodType.CucumberCheeseBurger,
-        FoodType.MexicanBurger,
-        FoodType.MexicanCheeseBurger,
-        FoodType. MixBurgerNoCheese,
-        FoodType. OGCheeseBurger,
-        FoodType.OnionBurger,
-        FoodType.OnionCheeseBurger,
-        FoodType.SimplePatty,
-        FoodType.SimpleDoubleBurger,
-        FoodType. SimpleTripleBurger,
-        FoodType.TripleAllMixBurger,
-        FoodType. TripleBurgerWithTomato,
+        //FoodType.CheeseBurger,
+        //FoodType.CheeseLettuceBurger,
+        //FoodType.CucumberBurger,
+        //FoodType.CucumberCheeseBurger,
+        //FoodType.MexicanBurger,
+        //FoodType.MexicanCheeseBurger,
+        //FoodType. MixBurgerNoCheese,
+        //FoodType. OGCheeseBurger,
+        //FoodType.OnionBurger,
+        //FoodType.OnionCheeseBurger,
+        //FoodType.SimplePatty,
+        //FoodType.SimpleDoubleBurger,
+        //FoodType. SimpleTripleBurger,
+        //FoodType.TripleAllMixBurger,
+        //FoodType. TripleBurgerWithTomato,
     };
 
         List<FoodType> available = new List<FoodType>();

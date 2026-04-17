@@ -66,21 +66,21 @@ public class CustomerMover2 : MonoBehaviour
             case FoodType.BaconCheeseBurger: label = "Bacon Cheese Burger"; break;
             case FoodType.BurgerWithTomato: label = "Burger With Tomato"; break;
             case FoodType.CaseOhBurger: label = "CaseOh Burger"; break;
-            case FoodType.CheeseBurger: label = "Cheese Burger"; break;
-            case FoodType.CheeseLettuceBurger: label = "Cheese Lettuce Burger"; break;
-            case FoodType.CucumberBurger: label = "Cucumber Burger"; break;
-            case FoodType.CucumberCheeseBurger: label = "Cucumber Cheese Burger"; break;
-            case FoodType.MexicanBurger: label = "Mexican Burger"; break;
-            case FoodType.MexicanCheeseBurger: label = "Mexican Cheese Burger"; break;
-            case FoodType.MixBurgerNoCheese: label = "Mix Burger No Cheese"; break;
-            case FoodType.OGCheeseBurger: label = "OG Cheese Burger"; break;
-            case FoodType.OnionBurger: label = "Onion Burger"; break;
-            case FoodType.OnionCheeseBurger: label = "Onion Cheese Burger"; break;
-            case FoodType.SimplePatty: label = "Simple Patty"; break;
-            case FoodType.SimpleDoubleBurger: label = "Simple Double Burger"; break;
-            case FoodType.SimpleTripleBurger: label = "Simple Triple Burger"; break;
-            case FoodType.TripleAllMixBurger: label = "Triple All Mix Burger"; break;
-            case FoodType.TripleBurgerWithTomato: label = "Triple Burger With Tomato"; break;
+            //case FoodType.CheeseBurger: label = "Cheese Burger"; break;
+            //case FoodType.CheeseLettuceBurger: label = "Cheese Lettuce Burger"; break;
+            //case FoodType.CucumberBurger: label = "Cucumber Burger"; break;
+            //case FoodType.CucumberCheeseBurger: label = "Cucumber Cheese Burger"; break;
+            //case FoodType.MexicanBurger: label = "Mexican Burger"; break;
+            //case FoodType.MexicanCheeseBurger: label = "Mexican Cheese Burger"; break;
+            //case FoodType.MixBurgerNoCheese: label = "Mix Burger No Cheese"; break;
+            //case FoodType.OGCheeseBurger: label = "OG Cheese Burger"; break;
+            //case FoodType.OnionBurger: label = "Onion Burger"; break;
+            //case FoodType.OnionCheeseBurger: label = "Onion Cheese Burger"; break;
+            //case FoodType.SimplePatty: label = "Simple Patty"; break;
+            //case FoodType.SimpleDoubleBurger: label = "Simple Double Burger"; break;
+            //case FoodType.SimpleTripleBurger: label = "Simple Triple Burger"; break;
+            //case FoodType.TripleAllMixBurger: label = "Triple All Mix Burger"; break;
+            //case FoodType.TripleBurgerWithTomato: label = "Triple Burger With Tomato"; break;
         }
 
         SetOrderText(label);

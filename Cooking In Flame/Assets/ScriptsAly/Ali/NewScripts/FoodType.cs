@@ -4,22 +4,22 @@ public enum FoodType
     BaconBurger,
     BaconCheeseBurger,
     BurgerWithTomato,
-    CaseOhBurger,
-    CheeseBurger,
-    CheeseLettuceBurger,
-    CucumberBurger,
-    CucumberCheeseBurger,
-    MexicanBurger,
-    MexicanCheeseBurger,
-    MixBurgerNoCheese,
-    OGCheeseBurger,
-    OnionBurger,
-    OnionCheeseBurger,
-    SimplePatty,
-    SimpleDoubleBurger,
-    SimpleTripleBurger,
-    TripleAllMixBurger,
-    TripleBurgerWithTomato
+    CaseOhBurger
+    //CheeseBurger,
+    //CheeseLettuceBurger,
+    //CucumberBurger,
+    //CucumberCheeseBurger,
+    //MexicanBurger,
+    //MexicanCheeseBurger,
+    //MixBurgerNoCheese,
+    //OGCheeseBurger,
+    //OnionBurger,
+    //OnionCheeseBurger,
+    //SimplePatty,
+    //SimpleDoubleBurger,
+    //SimpleTripleBurger,
+    //TripleAllMixBurger,
+    //TripleBurgerWithTomato
    
     
 }

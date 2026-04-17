@@ -193,7 +193,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2111128012576390873}
   - component: {fileID: 9217998100986136197}
-  - component: {fileID: 6033764873788408798}
   - component: {fileID: 2875286377326990570}
   - component: {fileID: 787667395857894771}
   - component: {fileID: 8479586306319427497}
@@ -281,29 +280,6 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &6033764873788408798
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2048135426286069369}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 968e73c7f3dd4124ea6966d803d9da08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CustomerMover
-  targetPoint: {fileID: 0}
-  moveSpeed: 2
-  startScale: 2
-  targetScale: 4
-  orderText: {fileID: 4176463075966667298}
-  possibleOrders:
-  - Cheese Burger
-  - Fries Only
-  - Chicken Burger
-  - Fish Nuggets
-  - Double Burger
 --- !u!114 &2875286377326990570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,7 +364,7 @@ MonoBehaviour:
   orderText: {fileID: 4176463075966667298}
   orderIcon: {fileID: 7826330928204911813}
   angerFill: {fileID: 4703254985163154566}
-  drainSpeed: 0.1
+  drainSpeed: 0.5
   speechBubble: {fileID: 857721181211491420}
   typingSpeed: 0.05
 --- !u!1 &4008488179954193058

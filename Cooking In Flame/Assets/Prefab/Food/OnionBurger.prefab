@@ -745,6 +745,7 @@ GameObject:
   - component: {fileID: 2779993960308393660}
   - component: {fileID: 6273280573034691201}
   - component: {fileID: 2751533866993620774}
+  - component: {fileID: -3383790138860876159}
   m_Layer: 6
   m_Name: OnionBurger
   m_TagString: Untagged
@@ -929,6 +930,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 7
+--- !u!114 &-3383790138860876159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7200249042702442739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75398d6cd81228d44b2e9a0841142c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodItem
+  foodType: 0
 --- !u!1 &7450758941123462360
 GameObject:
   m_ObjectHideFlags: 0

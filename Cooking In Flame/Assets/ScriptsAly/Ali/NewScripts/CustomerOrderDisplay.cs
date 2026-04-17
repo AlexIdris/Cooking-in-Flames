@@ -38,13 +38,22 @@ public class CustomerOrderDisplay : MonoBehaviour
         if (spawner == null || mover == null) return;
 
         bool isFront = (spawner.customers.Count > 0 && spawner.customers[0] == mover);
+        bool showUI = isFront && mover.hasReachedPoint;
 
-        orderText.gameObject.SetActive(isFront);
-        if (orderIcon != null) orderIcon.gameObject.SetActive(isFront);
-        if (speechBubble != null) speechBubble.SetActive(isFront);
+        // ✅ Show UI ONLY when customer reached front
+        orderText.gameObject.SetActive(showUI);
+        if (orderIcon != null) orderIcon.gameObject.SetActive(showUI);
+        if (speechBubble != null) speechBubble.SetActive(showUI);
 
-        if (isFront && mover.hasReachedPoint)
+        if (showUI)
         {
+            // ✅ Set icon ONLY once when needed
+            if (orderIcon != null && orderIcon.sprite == null)
+            {
+                orderIcon.sprite = spawner.GetFoodIcon(mover.orderedFood);
+            }
+
+            // ✅ Anger draining
             anger -= drainSpeed * Time.deltaTime;
             anger = Mathf.Clamp01(anger);
 
@@ -58,12 +67,17 @@ public class CustomerOrderDisplay : MonoBehaviour
         }
         else
         {
+            // reset typing if needed
             if (typingCoroutine != null)
             {
                 StopCoroutine(typingCoroutine);
                 typingCoroutine = null;
                 orderText.text = "";
             }
+
+            // optional: reset icon so next customer updates correctly
+            if (orderIcon != null)
+                orderIcon.sprite = null;
         }
     }
 
