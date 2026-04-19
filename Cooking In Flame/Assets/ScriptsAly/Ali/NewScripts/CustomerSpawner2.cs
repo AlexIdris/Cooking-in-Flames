@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class CustomerSpawner2 : MonoBehaviour
@@ -7,225 +6,224 @@ public class CustomerSpawner2 : MonoBehaviour
     [System.Serializable]
     public class CharacterData
     {
-        public string characterName;
+        public string characterName;  // optional, just for clarity
         public Sprite normalFace;
         public Sprite happyFace;
         public Sprite sadFace;
     }
 
+    // keep track of last 9 spawned characters
+    private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
+    public int CustomerTypeRecentLimit = 9;
+
+    //keep track of last 2 orders
+    private Queue<FoodType> recentOrders = new Queue<FoodType>();
+    public int orderHistoryLimit = 2;
+
+    public GameObject customerPrefab;
+    public Transform spawnPoint;
+    public Transform[] orderPoints;
+
+    public List<CharacterData> characters = new List<CharacterData>();
+
     [System.Serializable]
     public class FoodIconData
     {
         public FoodType type;
-        public Sprite   icon;
+        public Sprite icon;
     }
 
-    [Header("Spawn Settings")]
-    public GameObject  customerPrefab;
-    public Transform   spawnPoint;
-    public Transform[] orderPoints;
+    public List<FoodIconData> foodIcons; // assign in inspector
 
-    [Tooltip("Delay in seconds before the very first customer spawns after the scene loads.")]
-    public float initialSpawnDelay = 5f;
-
-    [Tooltip("Minimum seconds between consecutive customer spawns (inclusive).")]
-    public float minSpawnInterval = 1f;
-
-    [Tooltip("Maximum seconds between consecutive customer spawns (inclusive).")]
-    public float maxSpawnInterval = 5f;
-
-    [Header("Characters")]
-    public List<CharacterData> characters           = new List<CharacterData>();
-    public int                 CustomerTypeRecentLimit = 9;
-
-    [Header("Food Icons")]
-    public List<FoodIconData> foodIcons;
-
-    [Header("Order History")]
-    public int orderHistoryLimit = 2;
+    public Sprite GetFoodIcon(FoodType type)
+    {
+        foreach (var f in foodIcons)
+        {
+            if (f.type == type)
+                return f.icon;
+        }
+        return null;
+    }
 
     [HideInInspector] public List<CustomerMover2> customers = new List<CustomerMover2>();
-
-    private int                  nextIndex        = 0;
-    private Queue<CharacterData> recentCharacters = new Queue<CharacterData>();
-    private Queue<FoodType>      recentOrders     = new Queue<FoodType>();
-    private Coroutine            spawnCoroutine;
-    private bool                 spawningEnabled  = true;
-
-    private static readonly FoodType[] allFoodTypes =
-        (FoodType[])System.Enum.GetValues(typeof(FoodType));
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    private int nextIndex = 0;
 
     void Start()
     {
-        spawnCoroutine = StartCoroutine(SpawnLoop());
+        InvokeRepeating(nameof(SpawnCustomer), 0f, 5f);
     }
 
     void Update()
     {
-        // Debug / test keys
-        if (customers.Count > 0 && customers[0] != null)
+        // Press 4 to serve front customer
+        if (customers.Count > 0 && customers[0] != null && Input.GetKeyDown(KeyCode.Alpha4))
         {
-            if (Input.GetKeyDown(KeyCode.Alpha4)) customers[0].LeaveAndDie();
-            if (Input.GetKeyDown(KeyCode.Alpha1)) customers[0].SetFace(1);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) customers[0].SetFace(2);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) customers[0].SetFace(3);
+            customers[0].LeaveAndDie();
         }
 
-        // Shift queue when the front customer has been destroyed
+        // Press 1/2/3 to change face of front customer
+        if (customers.Count > 0 && customers[0] != null)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1)) customers[0].SetFace(1); // happy
+            if (Input.GetKeyDown(KeyCode.Alpha2)) customers[0].SetFace(2); // sad
+            if (Input.GetKeyDown(KeyCode.Alpha3)) customers[0].SetFace(3); // normal
+        }
+
+        // Shift queue if first customer destroyed
         if (customers.Count > 0 && customers[0] == null)
         {
             customers.RemoveAt(0);
-            nextIndex = Mathf.Max(0, nextIndex - 1);
+            nextIndex--;
             MoveQueueForward();
         }
     }
 
-    // ── Spawn control (called by DayNightCycle5Min) ───────────────────────────
-
-    /// <summary>
-    /// Immediately stops the spawn loop so no new customers arrive.
-    /// Called by DayNightCycle5Min when the end-of-day dismissal begins.
-    /// </summary>
-    public void StopSpawning()
-    {
-        if (!spawningEnabled) return;
-        spawningEnabled = false;
-        if (spawnCoroutine != null)
-        {
-            StopCoroutine(spawnCoroutine);
-            spawnCoroutine = null;
-        }
-        Debug.Log("[CustomerSpawner2] Spawning stopped — end of day.");
-    }
-
-    /// <summary>
-    /// Restarts the spawn loop from scratch, including the initial delay.
-    /// Called by DayNightCycle5Min when the cycle resets back to 8 AM.
-    /// </summary>
-    public void ResumeSpawning()
-    {
-        if (spawningEnabled) return;
-        spawningEnabled = true;
-        nextIndex       = 0;
-        customers.Clear();
-        spawnCoroutine  = StartCoroutine(SpawnLoop());
-        Debug.Log("[CustomerSpawner2] Spawning resumed — new day starting.");
-    }
-
-    // ── Spawn loop ────────────────────────────────────────────────────────────
-
-    private IEnumerator SpawnLoop()
-    {
-        yield return new WaitForSeconds(initialSpawnDelay);
-
-        while (spawningEnabled)
-        {
-            SpawnCustomer();
-
-            float interval = Random.Range(minSpawnInterval, maxSpawnInterval);
-            yield return new WaitForSeconds(interval);
-        }
-    }
-
-    // ── Spawning ──────────────────────────────────────────────────────────────
-
     public void SpawnCustomer()
     {
-        if (!spawningEnabled)           return;
         if (nextIndex >= orderPoints.Length) return;
-        if (characters.Count == 0)          return;
+        if (characters.Count == 0) return;
 
+        // Pick random character
         CharacterData chosen = GetRandomCharacter();
 
-        GameObject     newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
-        CustomerMover2 mover       = newCustomer.GetComponent<CustomerMover2>();
+        // Spawn customer
+        GameObject newCustomer = Instantiate(customerPrefab, spawnPoint.position, Quaternion.identity);
+        CustomerMover2 mover = newCustomer.GetComponent<CustomerMover2>();
 
-        mover.spawner          = this;
-        mover.currentCharacter = chosen;
-        mover.SetFace(3);
-
-        float targetMultiplier = GetScaleForIndex(nextIndex);
-        mover.Init(orderPoints[nextIndex], 1f, targetMultiplier);
-
-        customers.Add(mover);
-        nextIndex++;
-
-        FoodType randomFood = GetRandomOrder();
-        mover.SetOrder(randomFood);
+        // <-- assign spawner reference here
+        mover.spawner = this;
 
         CustomerOrderDisplay display = newCustomer.GetComponent<CustomerOrderDisplay>();
         if (display != null)
-        {
             display.Init(this, mover);
-            display.UpdateOrderDisplay();
-        }
+
+        // Assign chosen character data and default face
+        mover.currentCharacter = chosen;
+        mover.SetFace(3); // normal by default
+
+        // Set scale
+        float startMultiplier = 1f;
+        float targetMultiplier = GetScaleForIndex(nextIndex);
+        mover.Init(orderPoints[nextIndex], startMultiplier, targetMultiplier);
+
+        // Add to queue
+        customers.Add(mover);
+        nextIndex++;
+
+        // Pick random food and assign to customer
+        FoodType randomFood = GetRandomOrder();
+        mover.SetOrder(randomFood);
+
+        if (display != null)
+            display.DisplayOrderTextLetterByLetter(mover);
     }
 
-    // ── Food icon lookup ──────────────────────────────────────────────────────
-
-    public Sprite GetFoodIcon(FoodType type)
+    CharacterData GetRandomCharacter()
     {
-        foreach (FoodIconData f in foodIcons)
-            if (f.type == type) return f.icon;
-        return null;
+        List<CharacterData> available = new List<CharacterData>();
+
+        // build a list of characters that are NOT in recent history
+        foreach (var c in characters)
+        {
+            if (!recentCharacters.Contains(c))
+                available.Add(c);
+        }
+
+        // if all characters are in recent list (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<CharacterData>(characters);
+
+        // pick random from available
+        CharacterData chosen = available[Random.Range(0, available.Count)];
+
+        // add to recent queue
+        recentCharacters.Enqueue(chosen);
+
+        // keep only last N (9)
+        if (recentCharacters.Count > CustomerTypeRecentLimit)
+            recentCharacters.Dequeue();
+
+        return chosen;
     }
 
-    // ── Queue movement ────────────────────────────────────────────────────────
+    FoodType GetRandomOrder()
+    {
+        List<FoodType> allFoods = new List<FoodType>()
+    {
+            FoodType.Burger,
+            FoodType.HealthyBurger,
+            FoodType. LeafyCheeseBurger,
+            FoodType.MexcianBurger,
+            FoodType.OnionBurger,
+            FoodType.SussyCheeseBurger,
 
-    private void MoveQueueForward()
+        //FoodType.BaconBurger,
+        //FoodType. BaconCheeseBurger,
+        //FoodType.BurgerWithTomato,
+        //FoodType.CaseOhBurger,
+        //FoodType.CheeseBurger,
+        //FoodType.CheeseLettuceBurger,
+        //FoodType.CucumberBurger,
+        //FoodType.CucumberCheeseBurger,
+        //FoodType.MexicanBurger,
+        //FoodType.MexicanCheeseBurger,
+        //FoodType. MixBurgerNoCheese,
+        //FoodType. OGCheeseBurger,
+        //FoodType.OnionBurger,
+        //FoodType.OnionCheeseBurger,
+        //FoodType.SimplePatty,
+        //FoodType.SimpleDoubleBurger,
+        //FoodType. SimpleTripleBurger,
+        //FoodType.TripleAllMixBurger,
+        //FoodType. TripleBurgerWithTomato,
+    };
+
+        List<FoodType> available = new List<FoodType>();
+
+        // exclude recent ones
+        foreach (var f in allFoods)
+        {
+            if (!recentOrders.Contains(f))
+                available.Add(f);
+        }
+
+        // if everything got excluded (edge case), allow all again
+        if (available.Count == 0)
+            available = new List<FoodType>(allFoods);
+
+        // pick random
+        FoodType chosen = available[Random.Range(0, available.Count)];
+
+        // push to history
+        recentOrders.Enqueue(chosen);
+
+        if (recentOrders.Count > orderHistoryLimit)
+            recentOrders.Dequeue();
+
+        return chosen;
+    }
+
+    void MoveQueueForward()
     {
         for (int i = 0; i < customers.Count; i++)
         {
             if (customers[i] == null) continue;
+
             float currentMultiplier = customers[i].transform.localScale.x / customers[i].BaseScale;
-            float targetMultiplier  = GetScaleForIndex(i);
+            float targetMultiplier = GetScaleForIndex(i);
             customers[i].Init(orderPoints[i], currentMultiplier, targetMultiplier);
         }
     }
 
-    // ── Random helpers ────────────────────────────────────────────────────────
-
-    private CharacterData GetRandomCharacter()
-    {
-        List<CharacterData> pool = new List<CharacterData>();
-        foreach (CharacterData c in characters)
-            if (!recentCharacters.Contains(c)) pool.Add(c);
-        if (pool.Count == 0) pool = new List<CharacterData>(characters);
-
-        CharacterData chosen = pool[Random.Range(0, pool.Count)];
-        recentCharacters.Enqueue(chosen);
-        while (recentCharacters.Count > CustomerTypeRecentLimit)
-            recentCharacters.Dequeue();
-        return chosen;
-    }
-
-    private FoodType GetRandomOrder()
-    {
-        List<FoodType> pool = new List<FoodType>();
-        foreach (FoodType f in allFoodTypes)
-            if (!recentOrders.Contains(f)) pool.Add(f);
-        if (pool.Count == 0) pool = new List<FoodType>(allFoodTypes);
-
-        FoodType chosen = pool[Random.Range(0, pool.Count)];
-        recentOrders.Enqueue(chosen);
-        while (recentOrders.Count > orderHistoryLimit)
-            recentOrders.Dequeue();
-        return chosen;
-    }
-
-    // ── Scale table ───────────────────────────────────────────────────────────
-
-    private float GetScaleForIndex(int i)
+    float GetScaleForIndex(int i)
     {
         switch (i)
         {
-            case 0:  return 1.40f;
-            case 1:  return 1.25f;
-            case 2:  return 1.15f;
-            case 3:  return 1.05f;
-            case 4:  return 0.95f;
+            case 0: return 1.4f;
+            case 1: return 1.25f;
+            case 2: return 1.15f;
+            case 3: return 1.05f;
+            case 4: return 0.95f;
             default: return 0.85f;
         }
     }

@@ -1,22 +1,36 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class CustomerOrderDisplay : MonoBehaviour
 {
-    public TextMeshPro orderText; // assign in prefab
-    public Image orderIcon;           // assign in prefab (optional, for future)
+    public TextMeshPro orderText;
+    public Image orderIcon;
+
+    public Image angerFill;
+    float anger = 1f;
+    public float drainSpeed = 0.2f;
 
     public GameObject speechBubble;
 
-    private CustomerSpawner2 spawner;
-    private CustomerMover2 mover;
+    public float typingSpeed = 0.05f;
+    private Coroutine typingCoroutine;
 
-    // Link this customer to its spawner and mover
+    private CustomerMover2 mover;
+    private CustomerSpawner2 spawner;
+
     public void Init(CustomerSpawner2 s, CustomerMover2 m)
     {
         spawner = s;
         mover = m;
+
+        anger = 1f;
+        if (angerFill != null)
+            angerFill.fillAmount = 1f;
+
+        // Subscribe to event
+        mover.OnReachPoint += DisplayOrderTextLetterByLetter;
     }
 
     void Update()
@@ -24,60 +38,73 @@ public class CustomerOrderDisplay : MonoBehaviour
         if (spawner == null || mover == null) return;
 
         bool isFront = (spawner.customers.Count > 0 && spawner.customers[0] == mover);
+        bool showUI = isFront && mover.hasReachedPoint;
 
-        if (isFront)
+        // ✅ Show UI ONLY when customer reached front
+        orderText.gameObject.SetActive(showUI);
+        if (orderIcon != null) orderIcon.gameObject.SetActive(showUI);
+        if (speechBubble != null) speechBubble.SetActive(showUI);
+
+        if (showUI)
         {
-            orderText.gameObject.SetActive(true);
+            // ✅ Set icon ONLY once when needed
+            if (orderIcon != null && orderIcon.sprite == null)
+            {
+                orderIcon.sprite = spawner.GetFoodIcon(mover.orderedFood);
+            }
 
-            if (orderIcon != null)
-                orderIcon.gameObject.SetActive(true);
+            // ✅ Anger draining
+            anger -= drainSpeed * Time.deltaTime;
+            anger = Mathf.Clamp01(anger);
 
-            if (speechBubble != null)
-                speechBubble.gameObject.SetActive(true);  // <-- add this
+            if (angerFill != null)
+                angerFill.fillAmount = anger;
+
+            if (anger <= 0f)
+            {
+                mover.FailOrder();
+            }
         }
         else
         {
-            orderText.gameObject.SetActive(false);
+            // reset typing if needed
+            if (typingCoroutine != null)
+            {
+                StopCoroutine(typingCoroutine);
+                typingCoroutine = null;
+                orderText.text = "";
+            }
 
+            // optional: reset icon so next customer updates correctly
             if (orderIcon != null)
-                orderIcon.gameObject.SetActive(false);
-
-            if (speechBubble != null)
-                speechBubble.gameObject.SetActive(false); // <-- add this
+                orderIcon.sprite = null;
         }
     }
 
-    // Call this whenever the order changes
-    public void UpdateOrderDisplay()
+    public void DisplayOrderTextLetterByLetter(CustomerMover2 mover)
     {
-        if (mover == null) return;
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
 
-        // Set the text
-        if (orderText != null)
-            orderText.text = System.Text.RegularExpressions.Regex.Replace(
-    mover.orderedFood.ToString(),
-    "(\\B[A-Z])",
-    " $1"
-     );
-
-        // If you later want icons, you can do:
-
-        if (orderIcon != null && spawner != null)
-        {
-            Sprite icon = spawner.GetFoodIcon(mover.orderedFood);
-            orderIcon.sprite = icon;
-            orderIcon.enabled = icon != null;
-        }
-        
+        typingCoroutine = StartCoroutine(TypeText(mover.orderedFood.ToString()));
     }
 
-    // Optional: clear display
+    private IEnumerator TypeText(string fullText)
+    {
+        string readable = System.Text.RegularExpressions.Regex.Replace(fullText, "(\\B[A-Z])", " $1");
+
+        orderText.text = "";
+        foreach (char c in readable)
+        {
+            orderText.text += c;
+            yield return new WaitForSeconds(typingSpeed);
+        }
+        typingCoroutine = null;
+    }
+
     public void ClearDisplay()
     {
-        if (orderText != null)
-            orderText.text = "";
-
-        if (orderIcon != null)
-            orderIcon.enabled = false;
+        if (orderText != null) orderText.text = "";
+        if (orderIcon != null) orderIcon.enabled = false;
     }
 }
