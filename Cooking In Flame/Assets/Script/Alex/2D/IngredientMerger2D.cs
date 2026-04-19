@@ -6,6 +6,7 @@ using System.Linq;
 
 /// <summary>
 /// Place on a plate or surface with a trigger Collider2D.
+///
 /// SINGLE-CLICK CHAIN
 /// ───────────────────
 /// This script owns the LMB press when the player holds an ingredient over the plate.
@@ -17,16 +18,12 @@ using System.Linq;
 ///      re-enabled mid-frame. The trigger callback is kept only as a fallback for items
 ///      dropped by other means (e.g. physics).
 ///
-/// SHRINKING
-/// ──────────
-/// IngredientShrinker2D now lives on each ingredient prefab, not on the plate.
-/// It shrinks the ingredient autonomously while it is held over a plate-tagged object.
-///
-/// WRONG-COMBO COUNTER
-/// ────────────────────
-/// failedPlacementCount increments only when the plate holds EXACTLY the number of
-/// ingredients required by at least one recipe yet no recipe is satisfied — i.e. a
-/// complete wrong set. Partial sets never count.
+/// WRONG INGREDIENT PURGE
+/// ───────────────────────
+/// Every individual ingredient placement that does NOT immediately complete a correct
+/// recipe increments wrongIngredientCount. When that counter reaches maxWrongIngredients
+/// (default 6, customizable), ALL placed ingredients are destroyed and the plate resets.
+/// The counter also resets to 0 on any successful recipe match.
 ///
 /// SCRIPT EXECUTION ORDER
 /// ───────────────────────
@@ -74,21 +71,21 @@ public class IngredientMerger2D : MonoBehaviour
     [Header("Transitions")]
     [Range(0.05f, 2f)] public float fadeDuration = 0.4f;
 
-    [Header("Failed Placement Purge")]
-    [Tooltip("How many COMPLETE wrong combinations are allowed before all ingredients\n" +
-             "are destroyed. A 'complete wrong combination' is counted only when the\n" +
-             "plate holds exactly the required number of ingredients for at least one\n" +
-             "recipe, but no recipe is satisfied.\n\n" +
-             "Partial sets (fewer ingredients than any recipe needs) never count.\n" +
-             "Resets to 0 on a successful match or after a purge.\n" +
+    [Header("Wrong Ingredient Purge")]
+    [Tooltip("Total number of individual ingredient placements that produce no correct match\n" +
+             "before ALL placed ingredients are destroyed and the plate fully resets.\n\n" +
+             "Every single drop that does not immediately complete a valid recipe counts\n" +
+             "as one strike — including partial drops toward a multi-ingredient recipe.\n\n" +
+             "Counter resets to 0 on a successful recipe match or after a purge.\n" +
              "Set to 0 to disable automatic purging entirely.")]
-    [Min(0)] public int maxFailedPlacements = 5;
+    [Min(0)] public int maxWrongIngredients = 6;
 
-    [Tooltip("Flash the plate sprite red on each complete wrong combination.")]
-    public bool flashOnFailedPlacement = true;
-    [Range(0.05f, 1f)] public float failedPlacementFlashDuration = 0.2f;
+    [Tooltip("Flash the plate sprite red on each wrong ingredient placement.")]
+    public bool flashOnWrongIngredient = true;
+    [Range(0.05f, 1f)] public float wrongIngredientFlashDuration = 0.2f;
 
-    [Tooltip("Fade ingredients out before destroying them on purge. False = instant.")]
+    [Tooltip("Fade ingredients out over fadeDuration before destroying them on purge.\n" +
+             "False = instant destroy.")]
     public bool fadeOnPurge = true;
 
     [System.Serializable]
@@ -105,10 +102,11 @@ public class IngredientMerger2D : MonoBehaviour
         [Range(0f, 1f)] public float ingredientScaleOverride = 0f;
     }
 
-    private Collider2D           myCollider;
-    private SpriteRenderer       plateSR;
-    private Color                plateOriginalColor;
-    private PlayerHand2D         playerHand;
+    private Collider2D     myCollider;
+    private SpriteRenderer plateSR;
+    private Color          plateOriginalColor;
+    private PlayerHand2D   playerHand;
+
     private readonly Dictionary<GameObject, Vector3> placedIngredients = new Dictionary<GameObject, Vector3>();
     private readonly HashSet<GameObject>             alreadyStored     = new HashSet<GameObject>();
 
@@ -116,24 +114,22 @@ public class IngredientMerger2D : MonoBehaviour
     private Recipe     currentActiveRecipe;
     private bool       isTransitioning;
     private bool       isPurging;
-    private int        failedPlacementCount;
-    private Coroutine  flashCoroutine;
+
+    // Counts every individual ingredient placement that did not immediately
+    // complete a correct recipe. Resets on success or after a purge.
+    private int       wrongIngredientCount;
+    private Coroutine flashCoroutine;
 
     // Scene-wide registry of every output instance currently alive.
-    // Keyed by instance ID so destroyed objects leave no stale references.
     // Static so ALL plates share the same set — an output spawned on plate A
     // is blocked as an ingredient on plate B without any cross-plate references.
     private static readonly HashSet<int> spawnedOutputIDs = new HashSet<int>();
 
-    /// <summary>Returns true if <paramref name="obj"/> was spawned as an output
-    /// by any IngredientMerger2D and has not yet been destroyed.</summary>
     private static bool IsSpawnedOutput(GameObject obj) =>
         obj != null && IsSpawnedOutputOrChild(obj);
 
     private static bool IsSpawnedOutputOrChild(GameObject obj)
     {
-        // Trigger callbacks can come from child colliders/objects.
-        // Treat *any* descendant of a spawned output as blocked input.
         Transform t = obj.transform;
         while (t != null)
         {
@@ -143,6 +139,23 @@ public class IngredientMerger2D : MonoBehaviour
         return false;
     }
 
+    // ── Public accessors for IngredientAnomalyCleanup ────────────────────────
+
+    /// <summary>
+    /// Returns a snapshot of all GameObjects currently placed on this plate as
+    /// ingredients. Used by IngredientAnomalyCleanup to identify legitimate inputs.
+    /// </summary>
+    public IEnumerable<GameObject> GetPlacedIngredients() =>
+        new List<GameObject>(placedIngredients.Keys);
+
+    /// <summary>
+    /// Static wrapper around IsSpawnedOutput so IngredientAnomalyCleanup can
+    /// query the scene-wide output registry without a plate instance reference.
+    /// </summary>
+    public static bool IsSpawnedOutputPublic(GameObject obj) => IsSpawnedOutput(obj);
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
     void Awake()
     {
         myCollider = GetComponent<Collider2D>();
@@ -150,7 +163,6 @@ public class IngredientMerger2D : MonoBehaviour
         { Debug.LogError($"[IngredientMerger2D] {name}: Collider2D must have 'Is Trigger' = true.", this); enabled = false; }
         plateSR = GetComponent<SpriteRenderer>();
         if (plateSR != null) plateOriginalColor = plateSR.color;
-
     }
 
     void Start()
@@ -168,37 +180,35 @@ public class IngredientMerger2D : MonoBehaviour
 
         Pickupable2D held = playerHand.GetHeldItem();
 
-        // ── Path A: player is holding nothing — pick up output OR ingredient ────
+        // ── Path A: player holds nothing — pick up output or remove ingredient ─
         if (held == null)
         {
-            // A1 — pick up the finished output if one is sitting on the plate
+            // A1 — pick up the finished output sitting on the plate.
+            // Requires genuine hover contact: the cursor must be over the output's
+            // own Pickupable2D collider (detected by PlayerHand2D.UpdateHover) so
+            // the player must physically touch the output sprite to grab it.
             if (currentOutput != null)
             {
-                Pickupable2D outPickup = currentOutput.GetComponent<Pickupable2D>();
-                if (outPickup != null && outPickup.CanBePickedUp() &&
-                    myCollider.OverlapPoint(currentOutput.transform.position))
+                Pickupable2D outPickup  = currentOutput.GetComponent<Pickupable2D>();
+                Pickupable2D hovered    = playerHand.GetHoveredItem();
+
+                // Only proceed when PlayerHand2D is hovering THIS output specifically
+                if (outPickup != null && outPickup.CanBePickedUp() && hovered == outPickup)
                 {
-                    // Guard: output is only carriable when the recipe that produced it
-                    // used at least minInputsToPickUpOutput ingredients.
                     int inputsUsed = currentActiveRecipe != null
-                        ? currentActiveRecipe.requiredInputs.Count
-                        : 0;
+                        ? currentActiveRecipe.requiredInputs.Count : 0;
 
                     if (minInputsToPickUpOutput > 0 && inputsUsed < minInputsToPickUpOutput)
                     {
-                        // Not enough ingredients were used — silently block pickup.
-                        // The output stays on the plate; the player cannot carry it yet.
+                        // Recipe did not use enough ingredients — block pickup silently.
                         playerHand.SuppressDropThisFrame();
                         return;
                     }
 
-                    // ForcePickUp assigns heldItem inside PlayerHand2D, suppressing
-                    // its own LMB branch — no explicit SuppressDropThisFrame needed.
+                    // Hand the output to PlayerHand2D via ForcePickUp, which calls
+                    // OnPickup (disabling the collider) and suppresses PlayerHand2D's
+                    // own LMB branch — no double-processing.
                     playerHand.ForcePickUp(outPickup);
-                    // Output is now owned by the player:
-                    // - mark it as held so cleanup systems don't delete it
-                    // - remove it from the "spawned output" blocklist so it can be recyclable
-                    //   (i.e., usable as a normal ingredient on another plate).
                     SpawnCleanupManager.MarkAsHeld(outPickup.gameObject);
                     spawnedOutputIDs.Remove(outPickup.gameObject.GetInstanceID());
                     currentOutput       = null;
@@ -208,30 +218,18 @@ public class IngredientMerger2D : MonoBehaviour
                 }
             }
 
-            // A2 — pick up a placed ingredient so the player can remove or swap it.
-            // Scan placed ingredients and pick the first one whose position is under
-            // the cursor. ForcePickUp hands it to PlayerHand2D; RemoveIngredient
-            // clears it from the plate state so the row and recipe re-evaluate.
+            // A2 — pick up a placed ingredient to remove or swap it
             if (placedIngredients.Count > 0)
             {
                 Vector2 cursorPos = playerHand.transform.position;
                 foreach (GameObject placed in placedIngredients.Keys.ToList())
                 {
                     if (placed == null) continue;
-                    // Non-matching tags should not be interactable on the plate.
                     if (!string.IsNullOrEmpty(ingredientInputTag) && !placed.CompareTag(ingredientInputTag)) continue;
                     Pickupable2D pick = placed.GetComponent<Pickupable2D>();
                     if (pick == null || !pick.CanBePickedUp()) continue;
+                    if (Vector2.Distance(cursorPos, placed.transform.position) > 0.5f) continue;
 
-                    // Use a small overlap radius so clicking near (not pixel-perfect
-                    // on) the ingredient still works.
-                    float dist = Vector2.Distance(cursorPos, placed.transform.position);
-                    if (dist > 0.5f) continue;
-
-                    // Pick it up — this calls OnPickup which disables the collider,
-                    // so OnTriggerExit2D will NOT fire for it.
-                    // We must call RemoveIngredient manually before ForcePickUp
-                    // so the plate state is clean when the item leaves.
                     RemoveIngredient(placed);
                     playerHand.ForcePickUp(pick);
                     playerHand.SuppressDropThisFrame();
@@ -242,28 +240,14 @@ public class IngredientMerger2D : MonoBehaviour
             return;
         }
 
-        // ── Path B: player is holding an ingredient — drop and place it ───────
+        // ── Path B: player holds an ingredient — drop and place it ────────────
         if (!held.IsHeld) return;
-
-        // Only act when the held item is physically over this plate trigger
         if (!myCollider.OverlapPoint(held.transform.position)) return;
-
-        // Only accept tagged ingredients as inputs
         if (!string.IsNullOrEmpty(ingredientInputTag) && !held.CompareTag(ingredientInputTag)) return;
-
-        // Guard: don't place the same item twice
         if (placedIngredients.ContainsKey(held.gameObject)) return;
-
-        // Guard: never accept a spawned output as an ingredient — on this plate or any other.
-        // IsSpawnedOutput checks the static scene-wide registry, so an output picked up
-        // from plate A and carried to plate B is still blocked as an ingredient on plate B.
         if (IsSpawnedOutput(held.gameObject)) return;
 
-        // Drop: re-enables the item's collider and suppresses PlayerHand2D's LMB
         playerHand.DropHeldItem();
-
-        // Place directly — we do NOT rely on OnTriggerEnter2D because Unity does
-        // not fire Physics2D trigger callbacks for colliders just re-enabled mid-frame.
         PlaceIngredient(held.gameObject);
     }
 
@@ -277,12 +261,8 @@ public class IngredientMerger2D : MonoBehaviour
         if (IsOutputBeingPickedUp(obj)) { ResetPlate(false); return; }
 
         Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
-        // Reject: not a pickup item, still held, already placed, or a spawned output.
-        // IsSpawnedOutput covers both this plate's output and outputs from other plates.
         if (pickup == null || pickup.IsHeld || placedIngredients.ContainsKey(obj)) return;
         if (IsSpawnedOutput(obj)) return;
-
-        // Only accept tagged ingredients as inputs
         if (!string.IsNullOrEmpty(ingredientInputTag) && !obj.CompareTag(ingredientInputTag)) return;
 
         PlaceIngredient(obj);
@@ -305,9 +285,7 @@ public class IngredientMerger2D : MonoBehaviour
     private bool IsOutputBeingPickedUp(GameObject obj)
     {
         if (currentOutput == null) return false;
-        // obj may be a child of the output — walk up to the root and compare
-        bool isOutputOrChild = obj == currentOutput ||
-                               obj.transform.IsChildOf(currentOutput.transform);
+        bool isOutputOrChild = obj == currentOutput || obj.transform.IsChildOf(currentOutput.transform);
         if (!isOutputOrChild) return false;
         Pickupable2D p = currentOutput.GetComponent<Pickupable2D>();
         return p != null && p.IsHeld;
@@ -317,7 +295,6 @@ public class IngredientMerger2D : MonoBehaviour
 
     private void PlaceIngredient(GameObject obj)
     {
-        // Permanent one-time stored-size shrink
         if (!alreadyStored.Contains(obj))
         {
             obj.transform.localScale *= storedIngredientScale;
@@ -329,6 +306,21 @@ public class IngredientMerger2D : MonoBehaviour
         obj.transform.localScale = stored * ResolveDisplayScale(currentActiveRecipe);
 
         RepositionIngredients();
+
+        // ── Duplicate-slot guard ───────────────────────────────────────────────
+        // Each input slot must hold a unique ingredient type. If the newly placed
+        // item shares a name with any already-placed item AND no recipe explicitly
+        // requires two of that ingredient (i.e. the duplicate is unstructured),
+        // the placement is invalid — purge all ingredients and any current output.
+        if (HasUnstructuredDuplicate())
+        {
+            Debug.Log($"[IngredientMerger2D] {name}: Duplicate ingredient '{obj.name}' " +
+                      "placed without a matching recipe slot — resetting plate.");
+            if (fadeOnPurge) StartCoroutine(PurgeWithFade());
+            else             PurgeInstant();
+            return;
+        }
+
         EvaluateRecipes();
     }
 
@@ -358,17 +350,9 @@ public class IngredientMerger2D : MonoBehaviour
         int     count  = items.Count;
         if (count == 0) return;
 
-        // Row anchor: plate centre shifted by the full 3-axis inspector offset.
-        Vector3 anchor = transform.position + ingredientRowOffset;
+        Vector3 anchor    = transform.position + ingredientRowOffset;
+        float   slotWidth = ingredientRowWidth / count;
 
-        // Slot-centre formula — divides ingredientRowWidth into 'count' equal slots
-        // and places each ingredient at the centre of its slot.
-        // This produces identical gaps between all adjacent items AND between the
-        // outermost items and the row boundary, regardless of ingredient count.
-        //
-        // slot width  = ingredientRowWidth / count
-        // item i X    = anchor.x - ingredientRowWidth/2 + slotWidth * (i + 0.5)
-        float slotWidth = ingredientRowWidth / count;
         for (int i = 0; i < count; i++)
         {
             if (items[i] == null) continue;
@@ -395,19 +379,13 @@ public class IngredientMerger2D : MonoBehaviour
     {
         if (isTransitioning || isPurging) return;
 
-        Recipe bestMatch               = null;
-        int    bestCount               = -1;
-        bool   plateCountMatchesRecipe = false;   // true when plate is "full" for some recipe
+        Recipe bestMatch = null;
+        int    bestCount = -1;
 
         foreach (Recipe recipe in recipes)
         {
             if (recipe.requiredInputs.Count == 0 || recipe.outputPrefab == null) continue;
-
-            // Only evaluate when the plate has exactly the right ingredient count.
-            // Partial sets (fewer items) are never a wrong combo — just incomplete.
             if (placedIngredients.Count != recipe.requiredInputs.Count) continue;
-
-            plateCountMatchesRecipe = true;
             int matched = CountMatches(recipe);
             if (matched == recipe.requiredInputs.Count && matched > bestCount)
             { bestMatch = recipe; bestCount = matched; }
@@ -415,25 +393,27 @@ public class IngredientMerger2D : MonoBehaviour
 
         if (bestMatch != null && bestMatch != currentActiveRecipe)
         {
-            // Correct full set — reset counter and show output
-            failedPlacementCount = 0;
+            // Correct match — reset the wrong counter and produce the output
+            wrongIngredientCount = 0;
             StartCoroutine(ShowOutput(bestMatch));
             return;
         }
 
-        // Only count as a failed attempt when the plate is actually "full" for some recipe.
-        // Placing a first ingredient toward a 3-ingredient recipe is not a failure.
-        if (maxFailedPlacements > 0 && plateCountMatchesRecipe)
+        // This placement did not complete a correct recipe — count the strike
+        if (maxWrongIngredients > 0)
         {
-            failedPlacementCount++;
+            wrongIngredientCount++;
 
-            if (flashOnFailedPlacement && plateSR != null)
+            Debug.Log($"[IngredientMerger2D] {name}: Wrong ingredient " +
+                      $"({wrongIngredientCount}/{maxWrongIngredients}).");
+
+            if (flashOnWrongIngredient && plateSR != null)
             {
                 if (flashCoroutine != null) StopCoroutine(flashCoroutine);
                 flashCoroutine = StartCoroutine(FlashPlate());
             }
 
-            if (failedPlacementCount >= maxFailedPlacements)
+            if (wrongIngredientCount >= maxWrongIngredients)
             {
                 if (fadeOnPurge) StartCoroutine(PurgeWithFade());
                 else             PurgeInstant();
@@ -462,6 +442,63 @@ public class IngredientMerger2D : MonoBehaviour
         return matched;
     }
 
+    /// <summary>
+    /// Returns true if any two ingredients currently on the plate share the same
+    /// base name AND no configured recipe explicitly requires two of that ingredient.
+    ///
+    /// "Explicitly requires two" means the recipe's requiredInputs list contains
+    /// the same prefab reference at least twice.  If every recipe that could
+    /// theoretically accommodate the duplicate accounts for it in its slot list,
+    /// the placement is treated as valid and this returns false.
+    ///
+    /// This enforces the rule: each input slot holds one unique ingredient type
+    /// unless the recipe was deliberately designed to need duplicates.
+    /// </summary>
+    private bool HasUnstructuredDuplicate()
+    {
+        List<GameObject> placed = placedIngredients.Keys.Where(o => o != null).ToList();
+
+        // Build a frequency map: ingredient base-name → count on plate
+        Dictionary<string, int> nameCount = new Dictionary<string, int>();
+        foreach (GameObject obj in placed)
+        {
+            string baseName = obj.name.Replace("(Clone)", "").Trim();
+            if (!nameCount.ContainsKey(baseName)) nameCount[baseName] = 0;
+            nameCount[baseName]++;
+        }
+
+        // Check every ingredient type that appears more than once
+        foreach (KeyValuePair<string, int> kv in nameCount)
+        {
+            if (kv.Value < 2) continue;  // no duplicate for this type
+
+            // Count how many slots any recipe allocates for this ingredient
+            // A recipe "covers" the duplicate if it lists the ingredient at least
+            // as many times as it appears on the plate.
+            bool coveredByRecipe = false;
+            foreach (Recipe recipe in recipes)
+            {
+                if (recipe.requiredInputs == null || recipe.requiredInputs.Count == 0) continue;
+
+                int slotsForType = recipe.requiredInputs
+                    .Where(r => r != null)
+                    .Count(r => r.name.Replace("(Clone)", "").Trim() == kv.Key ||
+                                kv.Key.Contains(r.name.Replace("(Clone)", "").Trim()));
+
+                if (slotsForType >= kv.Value)
+                {
+                    coveredByRecipe = true;
+                    break;
+                }
+            }
+
+            if (!coveredByRecipe)
+                return true;  // unstructured duplicate found
+        }
+
+        return false;
+    }
+
     // ── Output ────────────────────────────────────────────────────────────────
 
     private IEnumerator ShowOutput(Recipe recipe)
@@ -472,12 +509,11 @@ public class IngredientMerger2D : MonoBehaviour
         Vector3    pos    = (Vector3)((Vector2)transform.position + outputSpawnOffset);
         GameObject newOut = Instantiate(recipe.outputPrefab, pos, Quaternion.identity);
         SpawnCleanupManager.RegisterSpawnedObject(newOut);
-        spawnedOutputIDs.Add(newOut.GetInstanceID());   // mark as output — blocks ingredient placement
+        spawnedOutputIDs.Add(newOut.GetInstanceID());
         currentOutput       = newOut;
         currentActiveRecipe = recipe;
         ReapplyDisplayScale(recipe);
 
-        // ── Fade in ───────────────────────────────────────────────────────────
         SpriteRenderer rend = newOut.GetComponent<SpriteRenderer>();
         if (rend != null)
         {
@@ -496,10 +532,6 @@ public class IngredientMerger2D : MonoBehaviour
 
         isTransitioning = false;
 
-        // Output sits on the plate after fading in. The player picks it up by
-        // clicking LMB over the plate — handled in Update() Path A.
-        // If the output prefab has no Pickupable2D it will simply sit in place
-        // and cannot be interacted with.
         if (newOut != null)
         {
             Pickupable2D outPickup = newOut.GetComponent<Pickupable2D>();
@@ -510,20 +542,15 @@ public class IngredientMerger2D : MonoBehaviour
         }
     }
 
-    // ── Ingredient cleanup helper ────────────────────────────────────────────────
+    // ── Ingredient cleanup ────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Destroys all placed ingredients and clears tracking state.
-    /// Called after the output is handed to the player so the plate is immediately
-    /// ready for a new set of ingredients.
-    /// </summary>
     private void DestroyAllPlacedIngredients()
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
         { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
         placedIngredients.Clear();
         alreadyStored.Clear();
-        failedPlacementCount = 0;
+        wrongIngredientCount = 0;
     }
 
     // ── Purge ─────────────────────────────────────────────────────────────────
@@ -531,7 +558,7 @@ public class IngredientMerger2D : MonoBehaviour
     private IEnumerator PurgeWithFade()
     {
         isPurging = true;
-        List<GameObject> toPurge    = placedIngredients.Keys.Where(o => o != null).ToList();
+        List<GameObject> toPurge     = placedIngredients.Keys.Where(o => o != null).ToList();
         Color[]          startColors = toPurge.Select(o =>
         {
             var sr = o.GetComponent<SpriteRenderer>();
@@ -571,10 +598,12 @@ public class IngredientMerger2D : MonoBehaviour
     private void FinalisePurge()
     {
         placedIngredients.Clear();
-        failedPlacementCount = 0;
+        wrongIngredientCount = 0;
         isPurging            = false;
         if (currentOutput != null)
         { StartCoroutine(FadeOutAndDestroy(currentOutput)); currentOutput = null; currentActiveRecipe = null; }
+
+        Debug.Log($"[IngredientMerger2D] {name}: Purge complete — plate reset.");
     }
 
     // ── Plate reset ───────────────────────────────────────────────────────────
@@ -585,17 +614,19 @@ public class IngredientMerger2D : MonoBehaviour
         { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
         placedIngredients.Clear();
         alreadyStored.Clear();
-        failedPlacementCount = 0;
+        wrongIngredientCount = 0;
+
         if (currentOutput != null)
         {
             spawnedOutputIDs.Remove(currentOutput.GetInstanceID());
             SpawnCleanupManager.MarkAsHeld(currentOutput);
             if (destroyCurrentOutput) Destroy(currentOutput);
         }
-        currentOutput        = null;
-        currentActiveRecipe  = null;
-        isTransitioning      = false;
-        isPurging            = false;
+
+        currentOutput       = null;
+        currentActiveRecipe = null;
+        isTransitioning     = false;
+        isPurging           = false;
     }
 
     // ── Fade & flash helpers ──────────────────────────────────────────────────
@@ -604,36 +635,34 @@ public class IngredientMerger2D : MonoBehaviour
     {
         if (obj == null) yield break;
 
-        int objId = obj.GetInstanceID();
+        int            objId  = obj.GetInstanceID();
+        SpriteRenderer rend   = obj.GetComponent<SpriteRenderer>();
+        Pickupable2D   pickup = obj.GetComponent<Pickupable2D>();
 
-        SpriteRenderer rend = obj.GetComponent<SpriteRenderer>();
         if (rend == null)
         {
-            // Nothing to fade — still ensure it can be recycled.
             spawnedOutputIDs.Remove(objId);
             SpawnCleanupManager.MarkAsHeld(obj);
             Destroy(obj);
             yield break;
         }
 
-        Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
-        float elapsed = 0f;
-        Color startC  = rend.color;
-
-        // If the output is already in the player's hand, don't fade/destroy it.
+        // If the item is already held, don't fade or destroy it
         if (pickup != null && pickup.IsHeld)
         {
             spawnedOutputIDs.Remove(objId);
             SpawnCleanupManager.MarkAsHeld(obj);
-            rend.color = startC;
             yield break;
         }
+
+        float elapsed = 0f;
+        Color startC  = rend.color;
 
         while (elapsed < fadeDuration)
         {
             if (obj == null) yield break;
 
-            // If the player picks up mid-fade, stop and keep it alive.
+            // Stop if the player picks it up mid-fade
             if (pickup != null && pickup.IsHeld)
             {
                 spawnedOutputIDs.Remove(objId);
@@ -643,8 +672,8 @@ public class IngredientMerger2D : MonoBehaviour
             }
 
             elapsed += Time.deltaTime;
-            Color c = startC;
-            c.a = Mathf.Lerp(startC.a, 0f, elapsed / fadeDuration);
+            Color c  = startC;
+            c.a      = Mathf.Lerp(startC.a, 0f, elapsed / fadeDuration);
             rend.color = c;
             yield return null;
         }
@@ -660,7 +689,7 @@ public class IngredientMerger2D : MonoBehaviour
     private IEnumerator FlashPlate()
     {
         plateSR.color = Color.red;
-        yield return new WaitForSeconds(failedPlacementFlashDuration);
+        yield return new WaitForSeconds(wrongIngredientFlashDuration);
         if (plateSR != null) plateSR.color = plateOriginalColor;
         flashCoroutine = null;
     }

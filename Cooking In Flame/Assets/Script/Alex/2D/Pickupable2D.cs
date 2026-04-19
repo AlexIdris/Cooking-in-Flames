@@ -1,16 +1,18 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   // Fixed 'Mouse' error
-using System.Collections;
 
+/// <summary>
+/// Core pickup component. Handles hover glow, held state, drop-tag validation,
+/// processing locks, external scale notifications, and click audio feedback.
+/// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(Collider2D))]
 public class Pickupable2D : MonoBehaviour
 {
     [Header("Visuals")]
     public Color normalColor = Color.white;
-    public Color hoverColor  = new Color(0.55f, 1f,  1f,  1f);
-    public Color heldColor   = new Color(1f,    1f,  0.55f, 1f);
-    public Color lockedColor = new Color(1f,    0.6f, 0.6f, 1f);
+    public Color hoverColor  = new Color(0.55f, 1f,   1f,    1f);
+    public Color heldColor   = new Color(1f,    1f,   0.55f, 1f);
+    public Color lockedColor = new Color(1f,    0.6f, 0.6f,  1f);
     public float hoverScale  = 1.15f;
     [Range(4f, 24f)] public float smoothSpeed = 12f;
 
@@ -19,7 +21,7 @@ public class Pickupable2D : MonoBehaviour
     public string[] allowedDropTags = { "plate", "pot", "pan", "trash", "customer", "coffee machine" };
 
     [Header("Audio")]
-    [Tooltip("Sound that plays every time LMB is clicked (pickup or drop attempt)")]
+    [Tooltip("Sound played each time the item is picked up or dropped.")]
     public AudioClip clickSound;
 
     /// <summary>True while this item is carried by the player.</summary>
@@ -51,6 +53,7 @@ public class Pickupable2D : MonoBehaviour
     }
 
     // ── Called by PlayerHand2D ────────────────────────────────────────────────
+
     /// <summary>Returns true when the item is idle and available to be picked up.</summary>
     public bool CanBePickedUp() => !IsHeld && !IsProcessingLocked;
 
@@ -70,8 +73,6 @@ public class Pickupable2D : MonoBehaviour
         targetColor        = heldColor;
         targetScale        = originalScale;
         SpawnCleanupManager.MarkAsHeld(gameObject);
-
-        // Play click sound on pickup
         PlayClickSound();
     }
 
@@ -84,12 +85,11 @@ public class Pickupable2D : MonoBehaviour
         targetColor = normalColor;
         targetScale = originalScale;
         SpawnCleanupManager.MarkAsDropped(gameObject);
-
-        // Play click sound on drop attempt
         PlayClickSound();
     }
 
     // ── Called by IngredientShrinker2D ────────────────────────────────────────
+
     /// <summary>
     /// Updates the internal scale baseline after an external shrink so OnDrop,
     /// SetHovered, and the smooth-lerp all reference the new smaller size.
@@ -102,6 +102,7 @@ public class Pickupable2D : MonoBehaviour
     }
 
     // ── Called by Processing2D ────────────────────────────────────────────────
+
     /// <summary>
     /// Engages (true) or releases (false) the processing lock.
     /// While locked: pickup is blocked and the item tints to lockedColor.
@@ -110,23 +111,21 @@ public class Pickupable2D : MonoBehaviour
     public void SetProcessingLock(bool locked)
     {
         IsProcessingLocked = locked;
-        Color  col   = locked ? lockedColor : normalColor;
+        Color   col   = locked ? lockedColor : normalColor;
         Vector3 scale = transform.localScale;
         ApplyVisuals(col, scale);
         targetColor = col;
         targetScale = scale;
     }
 
-    // ── Audio Helper ──────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private void PlayClickSound()
     {
         if (clickSound != null)
-        {
             AudioSource.PlayClipAtPoint(clickSound, transform.position);
-        }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private void ApplyVisuals(Color color, Vector3 scale)
     {
         if (spriteRend) spriteRend.color = color;

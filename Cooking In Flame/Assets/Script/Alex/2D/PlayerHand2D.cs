@@ -5,6 +5,11 @@ using UnityEngine.InputSystem;
 /// Cursor-as-hand controller. Moves a sprite to the mouse position in world space,
 /// handles hover glow, single-click pickup and tag-gated drop for Pickupable2D items.
 /// Works correctly with perspective cameras via z=0 plane raycasting.
+///
+/// SCRIPT EXECUTION ORDER
+/// ───────────────────────
+/// Set IngredientMerger2D BEFORE PlayerHand2D so DropHeldItem() sets
+/// dropSuppressedThisFrame before PlayerHand2D.Update() reads LMB.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class PlayerHand2D : MonoBehaviour
@@ -77,27 +82,34 @@ public class PlayerHand2D : MonoBehaviour
     public Pickupable2D GetHeldItem() => heldItem;
 
     /// <summary>
-    /// Prevents the LMB drop/pickup action firing this frame.
-    /// Called by IngredientShrinker2D or IngredientMerger2D when they consume the click.
+    /// Returns the Pickupable2D the cursor is currently hovering over, or null.
+    /// Used by IngredientMerger2D to check whether the player is hovering the
+    /// output before allowing a pickup — ensuring genuine contact is required.
+    /// </summary>
+    public Pickupable2D GetHoveredItem() => hoveredItem;
+
+    /// <summary>
+    /// Suppresses the LMB drop/pickup action for this frame.
+    /// Called by external scripts that have already handled the click.
     /// </summary>
     public void SuppressDropThisFrame() => dropSuppressedThisFrame = true;
 
     /// <summary>
-    /// Immediately drops the held item unconditionally (no tag check).
-    /// Called by IngredientMerger2D after it has already validated the drop surface,
-    /// so PlayerHand2D does not need to repeat the surface check on the same click.
+    /// Drops the held item unconditionally and suppresses PlayerHand2D's own LMB
+    /// handling for this frame. Called by IngredientMerger2D after it has validated
+    /// that the item is over the plate, so no tag check is needed here.
     /// </summary>
     public void DropHeldItem()
     {
         if (heldItem == null) return;
         heldItem.OnDrop();
-        heldItem = null;
-        dropSuppressedThisFrame = true; // prevent the normal LMB path from also firing
+        heldItem                = null;
+        dropSuppressedThisFrame = true;
     }
 
     /// <summary>
-    /// Immediately picks up <paramref name="target"/>, dropping whatever is
-    /// currently held. Used by Spawnable2D to hand off a freshly spawned item.
+    /// Immediately picks up <paramref name="target"/>, dropping whatever is currently
+    /// held. Used by Spawnable2D to hand off a freshly spawned item.
     /// </summary>
     public void ForcePickUp(Pickupable2D target)
     {

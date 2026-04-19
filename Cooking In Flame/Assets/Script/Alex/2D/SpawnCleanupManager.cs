@@ -29,6 +29,14 @@ public class SpawnCleanupManager : MonoBehaviour
             looseObjects.Add(obj);
     }
 
+    /// <summary>
+    /// Returns true if <paramref name="obj"/> is currently registered as a loose
+    /// spawned object. Used by IngredientAnomalyCleanup to distinguish runtime-
+    /// spawned ingredients (eligible for cleanup) from scene-placed static objects.
+    /// </summary>
+    public static bool IsRegistered(GameObject obj) =>
+        obj != null && looseObjects.Contains(obj);
+
     /// <summary>Destroys every loose object that is not currently held, then clears the list.</summary>
     public static void DeleteAllLooseSpawns()
     {

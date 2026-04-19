@@ -4,25 +4,31 @@ using TMPro;
 
 public class CustomerMover2 : MonoBehaviour
 {
-
-    public float moveSpeed = 3f;
+    [Header("Movement")]
+    public float moveSpeed  = 3f;
     public float scaleSpeed = 2f;
 
-    public FoodType orderedFood;
-
+    [Header("Order")]
+    public FoodType    orderedFood;
     public TextMeshPro orderText;
 
-    private Transform targetPoint;
-    private float targetScale;
-    private bool movingToPoint = false;
-    private bool leaving = false;
+    [Header("Serving")]
+    [Tooltip("How long the customer displays their reaction face before being destroyed.")]
+    public float reactionDuration = 3f;
 
-    private Vector3 baseScale;
-    public float BaseScale => baseScale.x;
-
-    [HideInInspector] public CustomerSpawner2 spawner;
+    [HideInInspector] public CustomerSpawner2              spawner;
     [HideInInspector] public CustomerSpawner2.CharacterData currentCharacter;
 
+    /// <summary>Base prefab scale read by CustomerSpawner2 for queue scaling.</summary>
+    public float BaseScale => baseScale.x;
+
+    /// <summary>True once the customer has been served and is walking off screen.</summary>
+    public bool IsLeaving { get; private set; }
+
+    private Transform      targetPoint;
+    private float          targetScale;
+    private bool           movingToPoint;
+    private Vector3        baseScale;
     private SpriteRenderer sr;
 
     void Awake()
@@ -31,188 +37,134 @@ public class CustomerMover2 : MonoBehaviour
         if (baseScale == Vector3.zero) baseScale = transform.localScale;
     }
 
+    // ── Initialisation ────────────────────────────────────────────────────────
+
     public void Init(Transform newTarget, float startMultiplier, float targetMultiplier)
     {
         targetPoint = newTarget;
-
-        float startScale = baseScale.x * startMultiplier;
-        float endScale = baseScale.x * targetMultiplier;
-
-        transform.localScale = Vector3.one * startScale;
-        targetScale = endScale;
-
-        movingToPoint = true;
-        leaving = false;
+        transform.localScale = Vector3.one * (baseScale.x * startMultiplier);
+        targetScale          = baseScale.x * targetMultiplier;
+        movingToPoint        = true;
+        IsLeaving            = false;
     }
+
+    // ── Order ─────────────────────────────────────────────────────────────────
 
     public void SetOrder(FoodType food)
     {
         orderedFood = food;
 
-        // convert enum to readable text
-        string label = "";
-
+        string label;
         switch (food)
         {
-
-            case FoodType.BaconBurger:
-                label = "Bacon Burger";
-                break;
-
-            case FoodType.BaconCheeseBurger:
-                label = "Bacon Cheese Burger";
-                break;
-
-            case FoodType.BurgerWithTomato:
-                label = "Burger With Tomato";
-                break;
-
-            case FoodType.CaseOhBurger:
-                label = "CaseOh Burger";
-                break;
-
-            case FoodType.CheeseBurger:
-                label = "Cheese Burger";
-                break;
-
-
-
-            case FoodType.CheeseLettuceBurger:
-                label = "Cheese Lettuce Burger";
-                break;
-            case FoodType.CucumberBurger:
-                label = "Cucumber Burger";
-                break;
-            case FoodType.CucumberCheeseBurger:
-                label = "Cucumber Cheese Burger";
-                break;
-            case FoodType.MexicanBurger:
-                label = "Mexican Burger";
-                break;
-            case FoodType.MexicanCheeseBurger:
-                label = "Mexican Cheese Burger";
-                break;
-            case FoodType.MixBurgerNoCheese:
-                label = "Mix Burger No Cheese";
-                break;
-            case FoodType.OGCheeseBurger:
-                label = "OG Cheese Burger";
-                break;
-            case FoodType.OnionBurger:
-                label = "Onion Burger";
-                break;
-            case FoodType.OnionCheeseBurger:
-                label = "Onion Cheese Burger";
-                break;
-            case FoodType.SimplePatty:
-                label = "Simple Patty";
-                break;
-            case FoodType.SimpleDoubleBurger:
-                label = "Simple Double Burger";
-                break;
-            case FoodType.SimpleTripleBurger:
-                label = "Simple Triple Burger";
-                break;
-            case FoodType.TripleAllMixBurger:
-                label = "Triple All Mix Burger";
-                break;
-            case FoodType.TripleBurgerWithTomato:
-                label = "Triple Burger With Tomato";
-                break;
-
+            case FoodType.BaconBurger:            label = "Bacon Burger";             break;
+            case FoodType.BaconCheeseBurger:      label = "Bacon Cheese Burger";      break;
+            case FoodType.BurgerWithTomato:       label = "Burger With Tomato";       break;
+            case FoodType.CaseOhBurger:           label = "CaseOh Burger";            break;
+            case FoodType.CheeseBurger:           label = "Cheese Burger";            break;
+            case FoodType.CheeseLettuceBurger:    label = "Cheese Lettuce Burger";    break;
+            case FoodType.CucumberBurger:         label = "Cucumber Burger";          break;
+            case FoodType.CucumberCheeseBurger:   label = "Cucumber Cheese Burger";   break;
+            case FoodType.MexicanBurger:          label = "Mexican Burger";           break;
+            case FoodType.MexicanCheeseBurger:    label = "Mexican Cheese Burger";    break;
+            case FoodType.MixBurgerNoCheese:      label = "Mix Burger No Cheese";     break;
+            case FoodType.OGCheeseBurger:         label = "OG Cheese Burger";         break;
+            case FoodType.OnionBurger:            label = "Onion Burger";             break;
+            case FoodType.OnionCheeseBurger:      label = "Onion Cheese Burger";      break;
+            case FoodType.SimplePatty:            label = "Simple Patty";             break;
+            case FoodType.SimpleDoubleBurger:     label = "Simple Double Burger";     break;
+            case FoodType.SimpleTripleBurger:     label = "Simple Triple Burger";     break;
+            case FoodType.TripleAllMixBurger:     label = "Triple All Mix Burger";    break;
+            case FoodType.TripleBurgerWithTomato: label = "Triple Burger With Tomato";break;
+            default:                              label = food.ToString();            break;
         }
 
         SetOrderText(label);
     }
 
-    
+    public void SetOrderText(string text)
+    {
+        if (orderText != null) orderText.text = text;
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────────
 
     void Update()
     {
-        // Move to queue position
         if (movingToPoint && targetPoint != null)
         {
             transform.position = Vector3.MoveTowards(
-                transform.position,
-                targetPoint.position,
-                moveSpeed * Time.deltaTime
-            );
+                transform.position, targetPoint.position, moveSpeed * Time.deltaTime);
 
-            float current = transform.localScale.x;
-            float newScale = Mathf.MoveTowards(current, targetScale, scaleSpeed * Time.deltaTime);
+            float newScale = Mathf.MoveTowards(
+                transform.localScale.x, targetScale, scaleSpeed * Time.deltaTime);
             transform.localScale = Vector3.one * newScale;
 
             if (Vector3.Distance(transform.position, targetPoint.position) < 0.05f)
-            {
                 movingToPoint = false;
-            }
         }
 
-        // Leaving behaviour
-        if (leaving)
-        {
+        if (IsLeaving)
             transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
-        }
     }
+
+    // ── Food delivery ─────────────────────────────────────────────────────────
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (spawner.customers[0] != this) return; // ignore if not front
-
-        if (leaving) return; // ignore if already leaving
+        if (spawner == null || spawner.customers.Count == 0 || spawner.customers[0] != this) return;
+        if (IsLeaving) return;
 
         FoodItem food = other.GetComponent<FoodItem>();
-        if (food == null) return; // ignore non-food objects
+        if (food == null) return;
 
-        // check if correct
-        if (food.foodType == orderedFood)
-        {
-            SetFace(1); // happy
-        }
-        else
-        {
-            SetFace(2); // sad
-        }
+        // Guard: never consume an item that is still held by the player
+        Pickupable2D pickup = other.GetComponent<Pickupable2D>();
+        if (pickup != null && pickup.IsHeld) return;
 
-        // destroy the food after serving
+        SetFace(food.foodType == orderedFood ? 1 : 2);
+
+        SpawnCleanupManager.MarkAsHeld(other.gameObject);
         Destroy(other.gameObject);
 
-        // leave after reaction
         LeaveAndDie();
     }
 
-    public void SetOrderText(string text)
-    {
-        if (orderText != null)
-        {
-            orderText.text = text;
-        }
-    }
+    // ── Leave ─────────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Triggers the walk-off animation and schedules destruction.
+    /// Safe to call from DayNightCycle5Min, CustomerSpawner2 debug keys, or
+    /// OnTriggerEnter2D — subsequent calls are ignored.
+    /// </summary>
     public void LeaveAndDie()
     {
-        if (leaving) return;
-
-        leaving = true;
+        if (IsLeaving) return;
+        IsLeaving     = true;
         movingToPoint = false;
-
-        StartCoroutine(DieAfterSeconds(3f));
+        SetOrderText("");
+        StartCoroutine(DieAfterSeconds(reactionDuration));
     }
 
-    IEnumerator DieAfterSeconds(float seconds)
+    private IEnumerator DieAfterSeconds(float seconds)
     {
         yield return new WaitForSeconds(seconds);
         Destroy(gameObject);
     }
 
+    // ── Face / mood ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 1 = happy  |  2 = sad  |  3 = neutral
+    /// Called by OnTriggerEnter2D, debug keys, and DayNightCycle5Min.
+    /// </summary>
     public void SetFace(int mood)
     {
         if (sr == null || currentCharacter == null) return;
-
         switch (mood)
         {
-            case 1: sr.sprite = currentCharacter.happyFace; break;
-            case 2: sr.sprite = currentCharacter.sadFace; break;
+            case 1: sr.sprite = currentCharacter.happyFace;  break;
+            case 2: sr.sprite = currentCharacter.sadFace;    break;
             case 3: sr.sprite = currentCharacter.normalFace; break;
         }
     }

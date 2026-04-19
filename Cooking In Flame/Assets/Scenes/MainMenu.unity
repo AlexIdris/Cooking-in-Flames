@@ -1235,7 +1235,7 @@ MonoBehaviour:
   title: Cooking in Flames
   playButtonText: Play
   quitButtonText: Quit
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
+  titleColor: {r: 0.8117648, g: 0.69803923, b: 0.43921572, a: 1}
   buttonNormalColor: {r: 1, g: 1, b: 1, a: 1}
   buttonHighlightColor: {r: 0.7169812, g: 0.57758284, b: 0.22772036, a: 1}
 --- !u!4 &957165613

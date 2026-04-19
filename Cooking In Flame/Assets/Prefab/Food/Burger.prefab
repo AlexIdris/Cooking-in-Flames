@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1914218791389509931}
   m_Layer: 6
   m_Name: Bun (1)
-  m_TagString: Food
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 1299975242258185479}
   m_Layer: 6
   m_Name: Tomatoes (6)
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -194,7 +194,7 @@ GameObject:
   - component: {fileID: 6192293839098035524}
   m_Layer: 6
   m_Name: Tomatoes
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -922,7 +922,7 @@ GameObject:
   - component: {fileID: 8478618616664423937}
   m_Layer: 6
   m_Name: Lettuce
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1013,7 +1013,7 @@ GameObject:
   - component: {fileID: 3111249955227676233}
   m_Layer: 6
   m_Name: Tomat
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

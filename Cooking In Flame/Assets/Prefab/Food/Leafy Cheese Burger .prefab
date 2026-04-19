@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1964807644087040040}
   m_Layer: 6
   m_Name: Lettuce
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 4470864400990377368}
   m_Layer: 6
   m_Name: Cheese (1)
-  m_TagString: ingredient
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -583,7 +583,7 @@ GameObject:
   - component: {fileID: 6053338829767528418}
   m_Layer: 6
   m_Name: Bun (1)
-  m_TagString: Food
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
