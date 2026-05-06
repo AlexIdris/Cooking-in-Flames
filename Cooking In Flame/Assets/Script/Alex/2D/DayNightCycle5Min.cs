@@ -30,41 +30,58 @@ public class DayNightCycle5Min : MonoBehaviour
     public float finalFadeDuration = 2.5f;
 
     [Header("Audio")]
+    [Tooltip("AudioSource that plays the ambient loop during the day (8 AM - 8 PM).\n" +
+             "Starts playing immediately when the shop button is clicked, fading in\n" +
+             "over audioCrossfadeDuration. Fades out when the day ends.")]
     public AudioSource dayAmbientSource;
-    public AudioClip   endOfDaySound;
+
+    [Tooltip("AudioSource that plays the end-of-day ambient (8 PM onward).\n" +
+             "Fades in when the day ends, fades out when the shop opens again.")]
+    public AudioSource endOfDayAudioSource;
+
+    [Tooltip("Seconds for the audio crossfade in both directions.\n" +
+             "Both sources fade simultaneously so the transition is smooth.")]
+    [Range(0.1f, 10f)]
+    public float audioCrossfadeDuration = 2.5f;
+
+    [Tooltip("Peak volume the day ambient source fades up to when the shop opens.\n" +
+             "0 = silent, 1 = full.")]
+    [Range(0f, 1f)]
+    public float dayAmbientMaxVolume = 1f;
+
+    [Tooltip("Peak volume the end-of-day source fades up to when the day ends.\n" +
+             "0 = silent, 1 = full.")]
+    [Range(0f, 1f)]
+    public float endOfDayMaxVolume = 1f;
 
     [Header("End-of-Day Customer Dismissal")]
     [Tooltip("Seconds before the final stage at which customers begin to be dismissed.\n" +
-             "Each customer shows a sad face then walks off, staggered by dismissalStagger.\n" +
-             "Set to 0 to disable the pre-warning entirely (customers are dismissed\n" +
-             "instantly when the final stage is entered).")]
+             "Set to 0 to disable.")]
     [Min(0f)]
     public float customerWarningLeadTime = 2f;
 
-    [Tooltip("Seconds between each successive customer dismissal.\n" +
-             "Customers are dismissed back-to-front so the last in queue leaves first\n" +
-             "and the front customer (being served) leaves last.\n\n" +
-             "Example with 3 customers and stagger = 1:\n" +
-             "  t+0s  back customer   → sad + LeaveAndDie\n" +
-             "  t+1s  middle customer → sad + LeaveAndDie\n" +
-             "  t+2s  front customer  → sad + LeaveAndDie")]
+    [Tooltip("Seconds between each successive customer dismissal (back-to-front).")]
     [Min(0f)]
     public float dismissalStagger = 1f;
 
     [System.Serializable]
     public class BackgroundStage
     {
-        public string stageName      = "Morning";
+        public string stageName  = "Morning";
         public Sprite backgroundSprite;
         [Range(8f, 20f)] public float startHour = 8f;
         [Range(8f, 20f)] public float endHour   = 14f;
     }
 
-    private float           currentTime          = 0f;
-    private bool            isFinalStage         = false;
-    private bool            customerWarningFired = false;
-    private Sprite          currentBackgroundSprite;
-    private CustomerSpawner2 spawner;
+    private float            currentTime          = 0f;
+    private bool             isFinalStage         = false;
+    private bool             customerWarningFired = false;
+    private bool             dayRunning           = false;
+    private Sprite           currentBackgroundSprite;
+    private CustomerSpawner2     spawner;
+    private ShopToggle           shopToggle;
+    private CustomerQuotaManager quotaManager;
+    private Coroutine            crossfadeCoroutine;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -82,95 +99,111 @@ public class DayNightCycle5Min : MonoBehaviour
 
         UpdateBackgroundAndClock();
 
-        if (dayAmbientSource != null && dayAmbientSource.clip != null)
-        {
-            dayAmbientSource.loop = true;
-            dayAmbientSource.Play();
-        }
+        // Both sources start silent — crossfade drives all volume changes.
+        InitAudioSource(dayAmbientSource);
+        InitAudioSource(endOfDayAudioSource);
 
-        // Find the spawner once — used to stop/resume customer spawning
-        spawner = FindObjectOfType<CustomerSpawner2>();
+        spawner      = FindObjectOfType<CustomerSpawner2>();
+        quotaManager = FindObjectOfType<CustomerQuotaManager>();
         if (spawner == null)
             Debug.LogWarning("[DayNightCycle5Min] No CustomerSpawner2 found in scene.", this);
     }
 
+    private void InitAudioSource(AudioSource src)
+    {
+        if (src == null) return;
+        src.loop        = true;
+        src.playOnAwake = false;
+        src.volume      = 0f;
+        src.Stop();
+    }
+
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Called by ShopToggle the moment the button is clicked and the label reads "Open".
+    /// The day ambient begins fading in immediately on the same frame.
+    /// </summary>
+    public void StartDay(ShopToggle toggle)
+    {
+        if (dayRunning) return;
+
+        shopToggle  = toggle;
+        dayRunning  = true;
+        currentTime = 0f;
+
+        quotaManager?.ResetForNewDay();
+        spawner?.ResumeSpawning();
+
+        // Fade day ambient IN and end-of-day source OUT — starts immediately.
+        Crossfade(fadeIn: dayAmbientSource, fadeOut: endOfDayAudioSource);
+
+        Debug.Log("[DayNightCycle5Min] Day started — day ambient fading in.");
+    }
+
+    /// <summary>Called by CustomerQuotaManager when the daily quota is reached early.</summary>
+    public void TriggerEarlyEnd()
+    {
+        if (isFinalStage || !dayRunning) return;
+        currentTime = realSecondsForDay;
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────────
+
     void Update()
     {
-        if (isFinalStage) return;
+        if (!dayRunning || isFinalStage) return;
 
         currentTime += Time.deltaTime;
 
-        // Customer warning fires once, customerWarningLeadTime seconds before the end
-        if (!customerWarningFired && customerWarningLeadTime > 0f)
+        if (!customerWarningFired && customerWarningLeadTime > 0f &&
+            realSecondsForDay - currentTime <= customerWarningLeadTime)
         {
-            if (realSecondsForDay - currentTime <= customerWarningLeadTime)
-            {
-                customerWarningFired = true;
-
-                // Stop spawner immediately so no new customers arrive during dismissal
-                spawner?.StopSpawning();
-
-                StartCoroutine(DismissAllCustomersStaggered());
-            }
+            customerWarningFired = true;
+            spawner?.StopSpawning();
+            StartCoroutine(DismissAllCustomersStaggered());
         }
 
-        if (currentTime >= realSecondsForDay)
-        {
-            EnterFinalStage();
-            return;
-        }
+        if (currentTime >= realSecondsForDay) { EnterFinalStage(); return; }
 
         UpdateBackgroundAndClock();
     }
 
     // ── Customer dismissal ────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Stops the spawner, then dismisses every active customer back-to-front
-    /// with a stagger of dismissalStagger seconds between each one.
-    /// Back-to-front order means the customer closest to the counter (index 0)
-    /// is the last to leave, giving the illusion that they are finishing their
-    /// transaction while the queue behind them clears out first.
-    /// </summary>
     private IEnumerator DismissAllCustomersStaggered()
     {
-        // Build a snapshot of the current queue back-to-front
-        // (spawner.customers is ordered front=0, back=last)
-        List<CustomerMover2> toDissmiss = new List<CustomerMover2>();
+        List<CustomerMover2> toDismiss = new List<CustomerMover2>();
 
         if (spawner != null)
         {
             for (int i = spawner.customers.Count - 1; i >= 0; i--)
             {
                 CustomerMover2 c = spawner.customers[i];
-                if (c != null && !c.IsLeaving)
-                    toDissmiss.Add(c);
+                if (c != null && !c.IsLeaving) toDismiss.Add(c);
             }
         }
         else
         {
-            // No spawner reference — fall back to scene-wide search
             CustomerMover2[] all = FindObjectsOfType<CustomerMover2>();
             for (int i = all.Length - 1; i >= 0; i--)
-                if (all[i] != null && !all[i].IsLeaving)
-                    toDissmiss.Add(all[i]);
+                if (all[i] != null && !all[i].IsLeaving) toDismiss.Add(all[i]);
         }
 
-        int count = toDissmiss.Count;
+        int count = toDismiss.Count;
         for (int i = 0; i < count; i++)
         {
-            CustomerMover2 customer = toDissmiss[i];
+            CustomerMover2 customer = toDismiss[i];
             if (customer == null) { yield return null; continue; }
 
-            customer.SetFace(2);    // sad face
-            customer.LeaveAndDie(); // begin walking off screen
+            customer.SetFace(2);
+            customer.LeaveAndDie(endOfDayDismissal: true);
 
             if (i < count - 1 && dismissalStagger > 0f)
                 yield return new WaitForSeconds(dismissalStagger);
         }
 
-        Debug.Log($"[DayNightCycle5Min] End-of-day dismissal complete — " +
-                  $"{count} customer(s) dismissed (stagger: {dismissalStagger}s).");
+        Debug.Log($"[DayNightCycle5Min] Dismissal complete — {count} customer(s) sent home.");
     }
 
     // ── Clock & background ────────────────────────────────────────────────────
@@ -210,8 +243,8 @@ public class DayNightCycle5Min : MonoBehaviour
     private void EnterFinalStage()
     {
         isFinalStage = true;
+        dayRunning   = false;
 
-        // Safety: stop spawner and dismiss any customers that slipped through
         spawner?.StopSpawning();
 
         if (!customerWarningFired)
@@ -223,16 +256,19 @@ public class DayNightCycle5Min : MonoBehaviour
         if (clockText != null)
             clockText.text = "08:00 PM";
 
-        if (endOfDaySound != null)
-            AudioSource.PlayClipAtPoint(endOfDaySound, Camera.main.transform.position);
+        // Fade end-of-day source IN and day ambient OUT.
+        Crossfade(fadeIn: endOfDayAudioSource, fadeOut: dayAmbientSource);
 
-        if (dayAmbientSource != null && dayAmbientSource.isPlaying)
-            StartCoroutine(FadeOutAudio(dayAmbientSource, finalFadeDuration));
+        shopToggle?.SetClosed();
 
-        Debug.Log("[DayNightCycle5Min] Day complete (8 PM) — final background active.");
+        isFinalStage         = false;
+        customerWarningFired = false;
+        currentTime          = 0f;
+
+        Debug.Log("[DayNightCycle5Min] Day complete (8 PM) — shop closed.");
     }
 
-    // ── Coroutines ────────────────────────────────────────────────────────────
+    // ── Background fade ───────────────────────────────────────────────────────
 
     private IEnumerator FadeBackground(Sprite newSprite, float duration)
     {
@@ -262,17 +298,46 @@ public class DayNightCycle5Min : MonoBehaviour
         }
     }
 
-    private IEnumerator FadeOutAudio(AudioSource source, float duration)
+    // ── Audio crossfade ───────────────────────────────────────────────────────
+
+    private void Crossfade(AudioSource fadeIn, AudioSource fadeOut)
     {
-        float startVol = source.volume;
-        float elapsed  = 0f;
+        if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
+        crossfadeCoroutine = StartCoroutine(CrossfadeRoutine(fadeIn, fadeOut, audioCrossfadeDuration));
+    }
+
+    private IEnumerator CrossfadeRoutine(AudioSource fadeIn, AudioSource fadeOut, float duration)
+    {
+        // Resolve target volume from the matching inspector field.
+        float targetVol = (fadeIn == dayAmbientSource) ? dayAmbientMaxVolume : endOfDayMaxVolume;
+
+        // Start the incoming source from the beginning at silent volume.
+        if (fadeIn != null && fadeIn.clip != null)
+        {
+            fadeIn.volume = 0f;
+            fadeIn.Stop();
+            fadeIn.loop = true;
+            fadeIn.Play();
+        }
+
+        float startOutVol = fadeOut != null ? fadeOut.volume : 0f;
+        float elapsed     = 0f;
+
         while (elapsed < duration)
         {
-            elapsed      += Time.deltaTime;
-            source.volume = Mathf.Lerp(startVol, 0f, elapsed / duration);
+            elapsed += Time.deltaTime;
+            float t  = elapsed / duration;
+
+            if (fadeIn  != null) fadeIn.volume  = Mathf.Lerp(0f,          targetVol, t);
+            if (fadeOut != null) fadeOut.volume = Mathf.Lerp(startOutVol, 0f,        t);
+
             yield return null;
         }
-        source.Stop();
+
+        if (fadeIn  != null) fadeIn.volume  = targetVol;
+        if (fadeOut != null) { fadeOut.volume = 0f; fadeOut.Stop(); }
+
+        crossfadeCoroutine = null;
     }
 
     // ── Debug tools ───────────────────────────────────────────────────────────
@@ -284,15 +349,9 @@ public class DayNightCycle5Min : MonoBehaviour
         UpdateBackgroundAndClock();
     }
 
-    [ContextMenu("Reset Cycle")]
-    void ResetCycle()
+    [ContextMenu("Force Start Day")]
+    void ForceStartDayDebug()
     {
-        currentTime          = 0f;
-        isFinalStage         = false;
-        customerWarningFired = false;
-        spawner?.ResumeSpawning();
-        if (dayAmbientSource != null && !dayAmbientSource.isPlaying)
-            dayAmbientSource.Play();
-        UpdateBackgroundAndClock();
+        StartDay(FindObjectOfType<ShopToggle>());
     }
 }

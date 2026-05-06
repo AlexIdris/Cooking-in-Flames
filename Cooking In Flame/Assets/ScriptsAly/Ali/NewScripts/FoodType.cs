@@ -5,6 +5,8 @@ public enum FoodType
     Burger,
     HealthyBurger,
     LeafyCheeseBurger,
+    Coffee,
+    MegaComboBurger,
     MexcianBurger,
     OnionBurger,
     SussyCheeseBurger

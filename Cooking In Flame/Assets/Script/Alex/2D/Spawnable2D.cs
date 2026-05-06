@@ -59,8 +59,11 @@ public class Spawnable2D : MonoBehaviour
             if (cooldownTimer <= 0f) { isOnCooldown = false; hasSpawnedThisInteraction = false; }
         }
 
+        // Interaction is locked until ShopToggle opens the shop
+        bool shopOpen = playerHand != null && playerHand.IsInteractionEnabled;
+
         Vector2 mouseWorld = GetMouseWorldPosition();
-        bool    hovered    = col.OverlapPoint(mouseWorld);
+        bool    hovered    = shopOpen && col.OverlapPoint(mouseWorld);
         bool    canGlow    = spawnPrefab != null && hovered && !isOnCooldown && !hasSpawnedThisInteraction;
 
         SmoothTransition(canGlow);
@@ -76,15 +79,35 @@ public class Spawnable2D : MonoBehaviour
 
     private void SpawnAndPickUp(Vector2 position)
     {
+        // Block spawn if the player is already holding an item — they must drop
+        // their current ingredient before picking up a new one from a dispenser.
+        if (playerHand != null && playerHand.IsHoldingItem)
+        {
+            Debug.Log("[Spawnable2D] Hand is full — drop the current item before spawning a new one.");
+            return;
+        }
+
         GameObject   spawned = Instantiate(spawnPrefab, new Vector3(position.x, position.y, spawnPlaneZ), Quaternion.identity);
         Pickupable2D pickup  = spawned.GetComponent<Pickupable2D>();
 
         SpawnCleanupManager.RegisterSpawnedObject(spawned);
 
         if (pickup != null && playerHand != null)
-            playerHand.ForcePickUp(pickup);
+        {
+            if (!playerHand.ForcePickUp(pickup))
+            {
+                // ForcePickUp returned false (hand became full between the check and
+                // the call — race condition safety). Destroy the spawned object so
+                // it does not become a floating orphan.
+                SpawnCleanupManager.MarkAsHeld(spawned);
+                Destroy(spawned);
+                return;
+            }
+        }
         else if (pickup == null)
+        {
             Debug.LogWarning($"[Spawnable2D] '{spawnPrefab.name}' has no Pickupable2D.", this);
+        }
 
         hasSpawnedThisInteraction = true;
         isOnCooldown              = true;

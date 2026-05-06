@@ -731,6 +731,7 @@ MonoBehaviour:
   smoothSpeed: 10
   allowedDropTags:
   - Customer
+  - Trash
   clickSound: {fileID: 0}
 --- !u!61 &7981331288707840217
 BoxCollider2D:

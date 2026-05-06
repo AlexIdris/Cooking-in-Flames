@@ -30,6 +30,7 @@ public class PlayerHand2D : MonoBehaviour
     private Pickupable2D   heldItem;
     private Pickupable2D   hoveredItem;
     private bool           dropSuppressedThisFrame;
+    private bool           interactionEnabled = false; // locked until ShopToggle opens the shop
 
     private readonly Plane worldPlane = new Plane(Vector3.forward, Vector3.zero);
 
@@ -61,10 +62,10 @@ public class PlayerHand2D : MonoBehaviour
 
         if (heldItem != null)
             heldItem.transform.position = worldPos;
-        else
+        else if (interactionEnabled)
             UpdateHover(worldPos);
 
-        if (!dropSuppressedThisFrame && Mouse.current.leftButton.wasPressedThisFrame)
+        if (interactionEnabled && !dropSuppressedThisFrame && Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (heldItem != null) TryDrop();
             else if (hoveredItem != null) PickUp(hoveredItem);
@@ -89,6 +90,30 @@ public class PlayerHand2D : MonoBehaviour
     public Pickupable2D GetHoveredItem() => hoveredItem;
 
     /// <summary>
+    /// Enables or disables all pickup and drop interaction.
+    /// Called by ShopToggle — false on scene load, true when the shop opens,
+    /// false again when the day ends and the panel fades back in.
+    /// While disabled the cursor still moves but nothing can be grabbed or dropped.
+    /// </summary>
+    public void SetInteractionEnabled(bool enabled)
+    {
+        interactionEnabled = enabled;
+
+        // Clear hover state immediately when locking so no item stays highlighted
+        if (!enabled && hoveredItem != null)
+        {
+            hoveredItem.SetHovered(false);
+            hoveredItem = null;
+        }
+    }
+
+    /// <summary>
+    /// True while pickup/drop interaction is active (shop is open).
+    /// Read by Spawnable2D to gate its own spawn behaviour.
+    /// </summary>
+    public bool IsInteractionEnabled => interactionEnabled;
+
+    /// <summary>
     /// Suppresses the LMB drop/pickup action for this frame.
     /// Called by external scripts that have already handled the click.
     /// </summary>
@@ -108,18 +133,37 @@ public class PlayerHand2D : MonoBehaviour
     }
 
     /// <summary>
-    /// Immediately picks up <paramref name="target"/>, dropping whatever is currently
-    /// held. Used by Spawnable2D to hand off a freshly spawned item.
+    /// Releases the held item in place — no tag-surface check, no suppression.
+    /// Used by IngredientHolder2D when the player right-clicks to deposit an item.
+    /// Unlike DropHeldItem(), this does NOT set dropSuppressedThisFrame so other
+    /// scripts can still react to the same frame if needed.
     /// </summary>
-    public void ForcePickUp(Pickupable2D target)
+    public void ReleaseHeldItem()
     {
-        if (target == null) return;
-        if (heldItem != null) { heldItem.OnDrop(); heldItem = null; }
+        if (heldItem == null) return;
+        heldItem.OnDrop();
+        heldItem = null;
+    }
+
+    /// <summary>
+    /// Picks up <paramref name="target"/> and attaches it to the cursor.
+    /// Returns true on success. Returns false and does nothing if the hand is
+    /// already holding an item — the player must drop their current item first.
+    ///
+    /// Callers (Spawnable2D, IngredientMerger2D, IngredientHolder2D) should check
+    /// the return value and abort their spawn/pickup logic if false.
+    /// </summary>
+    public bool ForcePickUp(Pickupable2D target)
+    {
+        if (target == null)   return false;
+        if (heldItem != null) return false;   // hand is full — player must drop first
+
         target.SetHovered(false);
         hoveredItem = null;
         target.OnPickup();
         heldItem = target;
         heldItem.transform.position = transform.position;
+        return true;
     }
 
     // ── Private ───────────────────────────────────────────────────────────────

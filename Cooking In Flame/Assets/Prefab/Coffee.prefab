@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6919370525089521277}
   - component: {fileID: 4984784320331708971}
   - component: {fileID: 1390081995472765719}
+  - component: {fileID: -5198570353566051949}
   m_Layer: 6
   m_Name: Coffee
   m_TagString: Untagged
@@ -115,6 +116,7 @@ MonoBehaviour:
   allowedDropTags:
   - Trash
   - Customer
+  clickSound: {fileID: 0}
 --- !u!50 &4984784320331708971
 Rigidbody2D:
   serializedVersion: 5
@@ -188,3 +190,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 19.2, y: 27.325644}
   m_EdgeRadius: 0
+--- !u!114 &-5198570353566051949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3150011045107495701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75398d6cd81228d44b2e9a0841142c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodItem
+  foodType: 3

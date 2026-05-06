@@ -942,7 +942,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75398d6cd81228d44b2e9a0841142c5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodItem
-  foodType: 0
+  foodType: 6
 --- !u!1 &7450758941123462360
 GameObject:
   m_ObjectHideFlags: 0
@@ -1229,7 +1229,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_Mass
-      value: 0.013273228
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 302924901183439592, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_SortingOrder
@@ -1279,7 +1279,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Onion
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4331416647696219579, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: 2382511011724871788, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1299,7 +1302,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_Mass
-      value: 0.013273228
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 302924901183439592, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_SortingOrder
@@ -1349,7 +1352,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Onion (2)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4331416647696219579, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: 2382511011724871788, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1477,6 +1483,7 @@ PrefabInstance:
     - {fileID: 970526380494700645, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
     - {fileID: 7812352426191117020, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
     - {fileID: 7163529526532598865, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
+    - {fileID: 3747088085327128115, guid: 59d77a2e19b84e94ca02160d890e842a, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1496,7 +1503,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_Mass
-      value: 0.013273228
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 302924901183439592, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
       propertyPath: m_SortingOrder
@@ -1546,7 +1553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Onion (1)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4331416647696219579, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: 2382511011724871788, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
+    - {fileID: -1408592265243091380, guid: 3cc50697249eecd47a0a476a079be429, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

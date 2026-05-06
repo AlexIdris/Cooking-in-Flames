@@ -42,9 +42,15 @@ public class IngredientMerger2D : MonoBehaviour
 
     [Tooltip("Minimum number of inputs a matched recipe must have required before\n" +
              "the player is allowed to pick up the output.\n\n" +
-             "3 (default) = output is only carriable when the recipe used 3+ ingredients.\n" +
-             "0 or 1 = output is always pickupable regardless of ingredient count.")]
-    [Min(0)] public int minInputsToPickUpOutput = 3;
+             "1 (default) = output is pickupable for any recipe with 1 or more ingredients.\n" +
+             "0 = output is always pickupable with no restriction.\n" +
+             "3 = output only carriable when the recipe used 3+ ingredients.")]
+    [Min(0)] public int minInputsToPickUpOutput = 1;
+
+    [Tooltip("Seconds the plate is deactivated after the output is picked up.\n" +
+             "During this window no new ingredients can be placed and no LMB input\n" +
+             "is processed, giving the player a brief pause between orders.")]
+    [Range(0f, 5f)] public float outputPickupLockoutDuration = 0.5f;
 
     [Header("Ingredient Scale — Stored (Permanent)")]
     [Tooltip("One-time shrink on first placement. Persists when picked back up. 1 = no shrink.")]
@@ -114,6 +120,8 @@ public class IngredientMerger2D : MonoBehaviour
     private Recipe     currentActiveRecipe;
     private bool       isTransitioning;
     private bool       isPurging;
+    private bool       isLockedOut;
+    private Coroutine  lockoutCoroutine;
 
     // Counts every individual ingredient placement that did not immediately
     // complete a correct recipe. Resets on success or after a purge.
@@ -137,6 +145,55 @@ public class IngredientMerger2D : MonoBehaviour
             t = t.parent;
         }
         return false;
+    }
+
+    // ── Static plate management ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Clears every IngredientMerger2D plate in the scene — destroys all placed
+    /// ingredients and any current output, and resets all merger state.
+    /// Called by CustomerMover2 when the serving customer leaves so the
+    /// ingredients used to make the order are cleaned up automatically.
+    /// </summary>
+    public static void ClearAllPlates()
+    {
+        IngredientMerger2D[] all = FindObjectsOfType<IngredientMerger2D>();
+        foreach (IngredientMerger2D merger in all)
+        {
+            if (merger == null) continue;
+            merger.ClearPlate();
+        }
+    }
+
+    /// <summary>
+    /// Destroys all placed ingredients and resets this plate's state without
+    /// touching the output (which may already be in the player's hand).
+    /// </summary>
+    public void ClearPlate()
+    {
+        foreach (GameObject obj in placedIngredients.Keys.ToList())
+        { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
+        placedIngredients.Clear();
+        alreadyStored.Clear();
+        wrongIngredientCount = 0;
+        isTransitioning      = false;
+        isPurging            = false;
+
+        if (currentOutput != null)
+        {
+            // Only destroy the output if it is not already in the player's hand
+            Pickupable2D outPickup = currentOutput.GetComponent<Pickupable2D>();
+            if (outPickup == null || !outPickup.IsHeld)
+            {
+                spawnedOutputIDs.Remove(currentOutput.GetInstanceID());
+                SpawnCleanupManager.MarkAsHeld(currentOutput);
+                Destroy(currentOutput);
+            }
+            currentOutput       = null;
+            currentActiveRecipe = null;
+        }
+
+        Debug.Log($"[IngredientMerger2D] {name}: Plate cleared.");
     }
 
     // ── Public accessors for IngredientAnomalyCleanup ────────────────────────
@@ -174,7 +231,7 @@ public class IngredientMerger2D : MonoBehaviour
 
     void Update()
     {
-        if (isPurging || isTransitioning) return;
+        if (isPurging || isTransitioning || isLockedOut) return;
         if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
         if (playerHand == null) return;
 
@@ -208,31 +265,20 @@ public class IngredientMerger2D : MonoBehaviour
                     // Hand the output to PlayerHand2D via ForcePickUp, which calls
                     // OnPickup (disabling the collider) and suppresses PlayerHand2D's
                     // own LMB branch — no double-processing.
-                    playerHand.ForcePickUp(outPickup);
+                    _ = playerHand.ForcePickUp(outPickup);
                     SpawnCleanupManager.MarkAsHeld(outPickup.gameObject);
                     spawnedOutputIDs.Remove(outPickup.gameObject.GetInstanceID());
                     currentOutput       = null;
                     currentActiveRecipe = null;
                     DestroyAllPlacedIngredients();
-                    return;
-                }
-            }
 
-            // A2 — pick up a placed ingredient to remove or swap it
-            if (placedIngredients.Count > 0)
-            {
-                Vector2 cursorPos = playerHand.transform.position;
-                foreach (GameObject placed in placedIngredients.Keys.ToList())
-                {
-                    if (placed == null) continue;
-                    if (!string.IsNullOrEmpty(ingredientInputTag) && !placed.CompareTag(ingredientInputTag)) continue;
-                    Pickupable2D pick = placed.GetComponent<Pickupable2D>();
-                    if (pick == null || !pick.CanBePickedUp()) continue;
-                    if (Vector2.Distance(cursorPos, placed.transform.position) > 0.5f) continue;
-
-                    RemoveIngredient(placed);
-                    playerHand.ForcePickUp(pick);
-                    playerHand.SuppressDropThisFrame();
+                    // Brief lockout so the plate cannot immediately accept new
+                    // ingredients on the same click that picked up the output.
+                    if (outputPickupLockoutDuration > 0f)
+                    {
+                        if (lockoutCoroutine != null) StopCoroutine(lockoutCoroutine);
+                        lockoutCoroutine = StartCoroutine(LockoutAfterPickup());
+                    }
                     return;
                 }
             }
@@ -273,13 +319,9 @@ public class IngredientMerger2D : MonoBehaviour
         if (other == null || isPurging) return;
         GameObject obj = other.gameObject;
 
+        // Only react to the output being picked up — placed ingredients cannot
+        // leave the plate once deposited; they are cleared by the system only.
         if (IsOutputBeingPickedUp(obj)) { ResetPlate(false); return; }
-
-        if (placedIngredients.ContainsKey(obj))
-        {
-            Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
-            if (pickup != null && pickup.IsHeld) RemoveIngredient(obj);
-        }
     }
 
     private bool IsOutputBeingPickedUp(GameObject obj)
@@ -289,6 +331,16 @@ public class IngredientMerger2D : MonoBehaviour
         if (!isOutputOrChild) return false;
         Pickupable2D p = currentOutput.GetComponent<Pickupable2D>();
         return p != null && p.IsHeld;
+    }
+
+    // ── Output pickup lockout ─────────────────────────────────────────────────
+
+    private IEnumerator LockoutAfterPickup()
+    {
+        isLockedOut = true;
+        yield return new WaitForSeconds(outputPickupLockoutDuration);
+        isLockedOut      = false;
+        lockoutCoroutine = null;
     }
 
     // ── Placement ─────────────────────────────────────────────────────────────
