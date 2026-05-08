@@ -1,11 +1,29 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections;
 
 /// <summary>
 /// Place on a machine with a trigger Collider2D and AudioSource.
 /// Accepts a specific input prefab, runs through a sequence of stage prefabs
 /// with configurable timing, and produces a final pickupable output.
-/// Moving the active stage object aborts the sequence.
+///
+/// SINGLE-CLICK DEPOSIT
+/// ─────────────────────
+/// Player holds a matching ingredient, cursor hovers the machine, LMB click
+/// → ingredient is placed and processing begins. A second input is never
+/// accepted while the machine is already running.
+///
+/// RETRIEVAL (when not locked)
+/// ────────────────────────────
+/// While processing, if the current stage is NOT in lockedStageIndices, the
+/// player can click LMB over the machine (holding nothing) to retrieve the
+/// current stage object — aborting the sequence and returning it to the hand.
+///
+/// LOCKED STAGES
+/// ──────────────
+/// Stages listed in lockedStageIndices cannot be retrieved. The player must
+/// wait for that stage to complete before the next stage can be retrieved or
+/// the process to finish. The final output is never locked.
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(AudioSource))]
@@ -30,9 +48,12 @@ public class Processing2D : MonoBehaviour
     [Range(0.05f, 3f)]   public float stageScale = 1f;
 
     [Header("Placement Lock")]
-    [Tooltip("Pins each intermediate stage to its spawn pose and blocks player pickup.\n" +
-             "Released automatically when processing completes.")]
-    public bool lockPlacementDuringProcessing = true;
+    [Tooltip("Stage indices (0-based) that are pinned and cannot be retrieved by the player.\n" +
+             "Unlisted stages can be clicked to abort and retrieve the current object.\n" +
+             "Leave empty to allow retrieval at any stage.\n\n" +
+             "The final output stage is never locked regardless of this list.")]
+    public int[] lockedStageIndices = new int[0];
+
     [Tooltip("Distance a stage object must move from its spawn point to abort processing.\n" +
              "Set to 0 to disable displacement detection.")]
     [Min(0f)] public float interruptMoveThreshold = 0.15f;
@@ -44,8 +65,12 @@ public class Processing2D : MonoBehaviour
     [Tooltip("One-shot played only on successful completion. Never plays on abort.")]
     public AudioClip completionClip;
 
+    // ── Private ───────────────────────────────────────────────────────────────
+
     private Collider2D   triggerCollider;
     private AudioSource  audioSource;
+    private PlayerHand2D playerHand;
+
     private GameObject   currentStageObj;
     private Pickupable2D currentStagePick;
     private Rigidbody2D  currentStageRb;
@@ -55,6 +80,8 @@ public class Processing2D : MonoBehaviour
     private int          currentStageIndex = -1;
     private bool         isProcessing;
     private Coroutine    processingCoroutine;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     void Awake()
     {
@@ -71,11 +98,57 @@ public class Processing2D : MonoBehaviour
         audioSource.Stop();
     }
 
+    void Start()
+    {
+        playerHand = FindObjectOfType<PlayerHand2D>();
+        if (playerHand == null)
+            Debug.LogWarning($"[Processing2D] {name}: No PlayerHand2D found.", this);
+    }
+
+    // ── Update — single LMB handler ───────────────────────────────────────────
+
     void Update()
     {
-        if (!isProcessing || currentStageObj == null || interruptMoveThreshold <= 0f) return;
-        if (Vector3.Distance(currentStageObj.transform.position, pinnedPosition) > interruptMoveThreshold)
-            AbortProcessing();
+        // Displacement abort check — runs regardless of click
+        if (isProcessing && currentStageObj != null && interruptMoveThreshold > 0f)
+        {
+            if (Vector3.Distance(currentStageObj.transform.position, pinnedPosition) > interruptMoveThreshold)
+                AbortProcessing();
+        }
+
+        if (Mouse.current == null || playerHand == null) return;
+        if (!Mouse.current.leftButton.wasPressedThisFrame) return;
+        if (!triggerCollider.OverlapPoint(playerHand.WorldPosition)) return;
+
+        Pickupable2D held = playerHand.GetHeldItem();
+
+        // ── Path A: player holds nothing — retrieve stage if not locked ────────
+        if (held == null)
+        {
+            if (!isProcessing || currentStageObj == null)    return;
+            if (stageLockActive)                              return;  // stage is locked — cannot retrieve
+            if (playerHand.IsHoldingItem)                    return;  // safety: already holding something
+
+            RetrieveCurrentStage();
+            playerHand.SuppressDropThisFrame();
+            return;
+        }
+
+        // ── Path B: player holds ingredient — deposit and begin processing ─────
+        if (isProcessing)                                            return;  // already running
+        if (!held.IsHeld)                                            return;
+        if (!held.gameObject.name.Contains(inputPrefab.name))       return;
+
+        // Validate allowedDropTags — the machine's tag must be in the ingredient's list
+        if (!playerHand.CanDropOnTag(gameObject.tag))
+        {
+            Debug.Log($"[Processing2D] '{held.name}' does not allow dropping on " +
+                      $"tag '{gameObject.tag}'. Add it to Pickupable2D.allowedDropTags.");
+            return;
+        }
+
+        playerHand.DropHeldItem();
+        BeginProcessing(held.gameObject);
     }
 
     void LateUpdate()
@@ -84,16 +157,36 @@ public class Processing2D : MonoBehaviour
         currentStageObj.transform.SetPositionAndRotation(pinnedPosition, pinnedRotation);
     }
 
-    void OnTriggerEnter2D(Collider2D other) { if (!isProcessing && other != null) TryStart(other.gameObject); }
-    void OnTriggerStay2D(Collider2D other)  { if (!isProcessing && other != null) TryStart(other.gameObject); }
+    // ── Retrieval ─────────────────────────────────────────────────────────────
 
-    private void TryStart(GameObject obj)
+    /// <summary>
+    /// Returns the current stage object to the player's hand and aborts processing.
+    /// Only called when stageLockActive is false (stage is not in lockedStageIndices).
+    /// </summary>
+    private void RetrieveCurrentStage()
     {
-        if (!obj.name.Contains(inputPrefab.name)) return;
-        Pickupable2D p = obj.GetComponent<Pickupable2D>();
-        if (p != null && p.IsHeld) return;
-        BeginProcessing(obj);
+        if (processingCoroutine != null) { StopCoroutine(processingCoroutine); processingCoroutine = null; }
+
+        ReleaseLock();
+        StopAudio();
+        isProcessing = false;
+
+        // Hand the stage object to the player
+        if (currentStagePick != null)
+        {
+            _ = playerHand.ForcePickUp(currentStagePick);
+        }
+
+        // Clear machine state — the object is now in the player's hand
+        currentStageObj   = null;
+        currentStagePick  = null;
+        currentStageRb    = null;
+        currentStageIndex = -1;
+
+        Debug.Log($"[Processing2D] {name}: Stage retrieved by player — processing aborted.");
     }
+
+    // ── Processing ────────────────────────────────────────────────────────────
 
     private void BeginProcessing(GameObject inputObj)
     {
@@ -158,11 +251,20 @@ public class Processing2D : MonoBehaviour
         currentStagePick = currentStageObj.GetComponent<Pickupable2D>();
         currentStageRb   = currentStageObj.GetComponent<Rigidbody2D>();
 
-        bool isFinal = currentStageIndex == processingStages.Length - 1;
-        if (lockPlacementDuringProcessing && !isFinal) ApplyLock();
-        else stageLockActive = false;
+        bool isFinal    = currentStageIndex == processingStages.Length - 1;
+        bool shouldLock = !isFinal && IsStageIndexLocked(currentStageIndex);
+        if (shouldLock) ApplyLock();
+        else            stageLockActive = false;
 
         SpawnCleanupManager.RegisterSpawnedObject(currentStageObj);
+    }
+
+    private bool IsStageIndexLocked(int index)
+    {
+        if (lockedStageIndices == null) return false;
+        foreach (int locked in lockedStageIndices)
+            if (locked == index) return true;
+        return false;
     }
 
     private void ApplyLock()

@@ -71,8 +71,15 @@ public class IngredientMerger2D : MonoBehaviour
              "Leave blank to allow any tag.")]
     public string ingredientInputTag = "Ingredient";
 
-    [Tooltip("Total world-space width over which placed ingredients are spread along the X axis.")]
-    public float ingredientRowWidth = 1.6f;
+    [Tooltip("World-space gap between the centre of one ingredient and the centre of the next.\n" +
+             "All ingredients are evenly spaced by this amount and the row is centred\n" +
+             "on the anchor regardless of ingredient count.\n\n" +
+             "spacing = 0.4 example:\n" +
+             "  1 item  = sits at anchor\n" +
+             "  2 items = anchor -0.2 and anchor +0.2\n" +
+             "  3 items = anchor -0.4, anchor, anchor +0.4")]
+    [Min(0f)]
+    public float ingredientSpacing = 0.4f;
 
     [Header("Transitions")]
     [Range(0.05f, 2f)] public float fadeDuration = 0.4f;
@@ -172,7 +179,13 @@ public class IngredientMerger2D : MonoBehaviour
     public void ClearPlate()
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
-        { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
         placedIngredients.Clear();
         alreadyStored.Clear();
         wrongIngredientCount = 0;
@@ -293,6 +306,14 @@ public class IngredientMerger2D : MonoBehaviour
         if (placedIngredients.ContainsKey(held.gameObject)) return;
         if (IsSpawnedOutput(held.gameObject)) return;
 
+        // Validate allowedDropTags — this plate's tag must be permitted by the ingredient
+        if (!playerHand.CanDropOnTag(gameObject.tag))
+        {
+            Debug.Log($"[IngredientMerger2D] '{held.name}' does not allow dropping on " +
+                      $"tag '{gameObject.tag}'. Add it to Pickupable2D.allowedDropTags.");
+            return;
+        }
+
         playerHand.DropHeldItem();
         PlaceIngredient(held.gameObject);
     }
@@ -357,6 +378,12 @@ public class IngredientMerger2D : MonoBehaviour
         placedIngredients.Add(obj, stored);
         obj.transform.localScale = stored * ResolveDisplayScale(currentActiveRecipe);
 
+        // Lock the ingredient so it cannot be picked up while on the plate.
+        // SetProcessingLock uses Pickupable2D's existing lock mechanism — the item
+        // tints to lockedColor and CanBePickedUp() returns false until unlocked.
+        Pickupable2D pickup = obj.GetComponent<Pickupable2D>();
+        if (pickup != null) pickup.SetProcessingLock(true);
+
         RepositionIngredients();
 
         // ── Duplicate-slot guard ───────────────────────────────────────────────
@@ -402,13 +429,19 @@ public class IngredientMerger2D : MonoBehaviour
         int     count  = items.Count;
         if (count == 0) return;
 
-        Vector3 anchor    = transform.position + ingredientRowOffset;
-        float   slotWidth = ingredientRowWidth / count;
+        // Row anchor: plate centre + the 3-axis inspector offset
+        Vector3 anchor = transform.position + ingredientRowOffset;
+
+        // Total row span = spacing × (count - 1)
+        // Each item i is placed at: anchor.x - span/2 + i × spacing
+        // This centres the row regardless of ingredient count, and the gap
+        // between every adjacent pair is always exactly ingredientSpacing.
+        float span = ingredientSpacing * (count - 1);
 
         for (int i = 0; i < count; i++)
         {
             if (items[i] == null) continue;
-            float x = anchor.x - ingredientRowWidth * 0.5f + slotWidth * (i + 0.5f);
+            float x = anchor.x - span * 0.5f + i * ingredientSpacing;
             items[i].transform.position = new Vector3(x, anchor.y, anchor.z);
         }
     }
@@ -599,7 +632,13 @@ public class IngredientMerger2D : MonoBehaviour
     private void DestroyAllPlacedIngredients()
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
-        { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
         placedIngredients.Clear();
         alreadyStored.Clear();
         wrongIngredientCount = 0;
@@ -635,7 +674,14 @@ public class IngredientMerger2D : MonoBehaviour
         }
 
         foreach (GameObject obj in toPurge)
-        { if (obj == null) continue; alreadyStored.Remove(obj); SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            alreadyStored.Remove(obj);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
 
         FinalisePurge();
     }
@@ -643,7 +689,14 @@ public class IngredientMerger2D : MonoBehaviour
     private void PurgeInstant()
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
-        { if (obj == null) continue; alreadyStored.Remove(obj); SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            alreadyStored.Remove(obj);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
         FinalisePurge();
     }
 
@@ -663,7 +716,13 @@ public class IngredientMerger2D : MonoBehaviour
     private void ResetPlate(bool destroyCurrentOutput)
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
-        { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
         placedIngredients.Clear();
         alreadyStored.Clear();
         wrongIngredientCount = 0;
@@ -751,7 +810,13 @@ public class IngredientMerger2D : MonoBehaviour
     void OnDestroy()
     {
         foreach (GameObject obj in placedIngredients.Keys.ToList())
-        { if (obj != null) { SpawnCleanupManager.MarkAsHeld(obj); Destroy(obj); } }
+        {
+            if (obj == null) continue;
+            Pickupable2D p = obj.GetComponent<Pickupable2D>();
+            if (p != null) p.SetProcessingLock(false);
+            SpawnCleanupManager.MarkAsHeld(obj);
+            Destroy(obj);
+        }
         if (currentOutput != null)
         {
             spawnedOutputIDs.Remove(currentOutput.GetInstanceID());

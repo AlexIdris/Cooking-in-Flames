@@ -14,6 +14,7 @@ TagManager:
   - Pot
   - Trash
   - ingredient
+  - Small Plate
   layers:
   - Default
   - TransparentFX

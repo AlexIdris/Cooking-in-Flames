@@ -1,20 +1,34 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 /// <summary>
-/// Cursor-as-hand controller. Moves a sprite to the mouse position in world space,
-/// handles hover glow, single-click pickup and tag-gated drop for Pickupable2D items.
-/// Works correctly with perspective cameras via z=0 plane raycasting.
+/// Cursor-as-hand controller. The hand cursor is a UI Image on a Screen Space Overlay
+/// canvas so it always renders above ALL other canvases, world-space sprites, and UI
+/// elements regardless of sorting order or canvas stack position.
+///
+/// The cursor moves to follow the mouse in screen space. World-space raycasting still
+/// uses z=0 plane projection for all pickup/drop logic — only the visual is UI-based.
 ///
 /// SCRIPT EXECUTION ORDER
 /// ───────────────────────
 /// Set IngredientMerger2D BEFORE PlayerHand2D so DropHeldItem() sets
 /// dropSuppressedThisFrame before PlayerHand2D.Update() reads LMB.
+///
+/// SETUP
+/// ──────
+/// 1. Create a Canvas: Render Mode = Screen Space - Overlay, Sort Order = 32767.
+/// 2. Inside it create an Image child — this is the hand cursor.
+/// 3. Attach PlayerHand2D to the Image GameObject.
+/// 4. Assign cursorSprite (or leave the Image sprite set in the Inspector).
+/// 5. The Image pivot should be (0, 1) top-left to match OS cursor hot-spot.
 /// </summary>
-[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(RectTransform))]
+[RequireComponent(typeof(Image))]
 public class PlayerHand2D : MonoBehaviour
 {
     [Header("Cursor")]
+    [Tooltip("Sprite for the hand cursor. Can also be set directly on the Image component.")]
     public Sprite cursorSprite;
     public Color  cursorColor = Color.white;
     [Range(0.1f, 3f)] public float cursorScale = 0.6f;
@@ -25,31 +39,52 @@ public class PlayerHand2D : MonoBehaviour
     [Tooltip("Overlap radius used to detect valid drop surfaces.")]
     public float dropCheckRadius = 0.5f;
 
-    private Camera         mainCam;
-    private SpriteRenderer myRenderer;
-    private Pickupable2D   heldItem;
-    private Pickupable2D   hoveredItem;
-    private bool           dropSuppressedThisFrame;
-    private bool           interactionEnabled = false; // locked until ShopToggle opens the shop
+    private Camera        mainCam;
+    private Image         cursorImage;
+    private RectTransform cursorRect;
+    private Canvas        overlayCanvas;
+    private Pickupable2D  heldItem;
+    private Pickupable2D  hoveredItem;
+    private bool          dropSuppressedThisFrame;
+    private bool          interactionEnabled = false;
+    private Vector3       currentWorldPosition;   // last computed world position of the cursor
 
     private readonly Plane worldPlane = new Plane(Vector3.forward, Vector3.zero);
 
     void Awake()
     {
-        mainCam    = Camera.main;
-        myRenderer = GetComponent<SpriteRenderer>();
-        if (mainCam == null) { Debug.LogError("[PlayerHand2D] No MainCamera found.", this); enabled = false; }
+        mainCam      = Camera.main;
+        cursorImage  = GetComponent<Image>();
+        cursorRect   = GetComponent<RectTransform>();
+        overlayCanvas = GetComponentInParent<Canvas>();
+
+        if (mainCam == null)
+        { Debug.LogError("[PlayerHand2D] No MainCamera found.", this); enabled = false; }
+        if (overlayCanvas == null)
+        { Debug.LogError("[PlayerHand2D] PlayerHand2D must be a child of a Canvas.", this); enabled = false; }
+        if (overlayCanvas != null && overlayCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            Debug.LogWarning("[PlayerHand2D] Parent Canvas should use 'Screen Space - Overlay' " +
+                             "to guarantee the cursor appears above all other UI.", this);
     }
 
     void Start()
     {
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Confined;
-        if (cursorSprite != null && myRenderer != null)
+
+        if (cursorImage != null)
         {
-            myRenderer.sprite    = cursorSprite;
-            myRenderer.color     = cursorColor;
-            transform.localScale = Vector3.one * cursorScale;
+            if (cursorSprite != null) cursorImage.sprite = cursorSprite;
+            cursorImage.color    = cursorColor;
+            cursorImage.raycastTarget = false;   // cursor must never block UI clicks
+        }
+
+        if (cursorRect != null)
+        {
+            cursorRect.pivot          = new Vector2(0f, 1f);  // top-left hot-spot
+            cursorRect.sizeDelta      = Vector2.one * 64f * cursorScale;
+            cursorRect.anchorMin      = Vector2.zero;
+            cursorRect.anchorMax      = Vector2.zero;
         }
     }
 
@@ -57,13 +92,18 @@ public class PlayerHand2D : MonoBehaviour
     {
         if (Mouse.current == null || mainCam == null) return;
 
-        Vector3 worldPos = GetMouseWorldPosition();
-        transform.position = worldPos;
+        // ── Move UI cursor to mouse position in screen space ─────────────────
+        Vector2 screenPos = Mouse.current.position.ReadValue();
+        if (cursorRect != null)
+            cursorRect.anchoredPosition = screenPos;
+
+        // ── World-space position for raycasting and held item tracking ─────────
+        currentWorldPosition = GetMouseWorldPosition();
 
         if (heldItem != null)
-            heldItem.transform.position = worldPos;
+            heldItem.transform.position = currentWorldPosition;
         else if (interactionEnabled)
-            UpdateHover(worldPos);
+            UpdateHover(currentWorldPosition);
 
         if (interactionEnabled && !dropSuppressedThisFrame && Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -81,6 +121,15 @@ public class PlayerHand2D : MonoBehaviour
 
     /// <summary>Returns the currently held Pickupable2D, or null.</summary>
     public Pickupable2D GetHeldItem() => heldItem;
+
+    /// <summary>
+    /// The cursor's last known position in world space (z = 0 plane).
+    /// Use this instead of transform.position — the cursor is now a UI Image
+    /// whose transform lives in screen-pixel coordinates, not world space.
+    /// Processing2D and any other world-space scripts must use this property
+    /// for all overlap and proximity checks.
+    /// </summary>
+    public Vector3 WorldPosition => currentWorldPosition;
 
     /// <summary>
     /// Returns the Pickupable2D the cursor is currently hovering over, or null.
@@ -133,6 +182,21 @@ public class PlayerHand2D : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns true if the currently held item's allowedDropTags list contains
+    /// <paramref name="surfaceTag"/>. Use this before calling DropHeldItem() to
+    /// ensure the drop surface is permitted by the ingredient's own rules.
+    /// Returns true when nothing is held (no restriction to check).
+    /// </summary>
+    public bool CanDropOnTag(string surfaceTag)
+    {
+        if (heldItem == null) return true;
+        foreach (string tag in heldItem.allowedDropTags)
+            if (string.Equals(tag, surfaceTag, System.StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    /// <summary>
     /// Releases the held item in place — no tag-surface check, no suppression.
     /// Used by IngredientHolder2D when the player right-clicks to deposit an item.
     /// Unlike DropHeldItem(), this does NOT set dropSuppressedThisFrame so other
@@ -162,7 +226,7 @@ public class PlayerHand2D : MonoBehaviour
         hoveredItem = null;
         target.OnPickup();
         heldItem = target;
-        heldItem.transform.position = transform.position;
+        heldItem.transform.position = currentWorldPosition;
         return true;
     }
 

@@ -135,9 +135,9 @@ public class IngredientHolder2D : MonoBehaviour
         if (!myCollider.OverlapPoint(held.transform.position))     return;
         if (!TagAllowed(held.gameObject))                          return;
 
-        // Validate allowedDropTags — this holder's tag must be in the ingredient's
-        // allowed list, exactly as PlayerHand2D.TryDrop() would require.
-        if (!DropTagAllowed(held))
+        // Validate via both DropTagAllowed (holder-side) and CanDropOnTag (hand-side)
+        // so both systems agree before the deposit is accepted.
+        if (!DropTagAllowed(held) || !playerHand.CanDropOnTag(gameObject.tag))
         {
             Debug.Log($"[IngredientHolder2D] '{held.name}' does not allow dropping on " +
                       $"tag '{gameObject.tag}'. Add '{gameObject.tag}' to its allowedDropTags.");
@@ -203,7 +203,16 @@ public class IngredientHolder2D : MonoBehaviour
         slotPickup.NotifyShrink(storedScale);
 
         FreezeRigidbody(storedObject, false);
-        playerHand.ForcePickUp(slotPickup);
+
+        if (!playerHand.ForcePickUp(slotPickup))
+        {
+            // Hand became full between the hover check and this call (should not
+            // normally happen but handled defensively).
+            FreezeRigidbody(slotPickup.gameObject, true);
+            slotPickup.transform.localScale = storedScale * displayScale;
+            slotPickup.NotifyShrink(storedScale * displayScale);
+            return;
+        }
 
         storedObject = null;
         storedScale  = Vector3.one;

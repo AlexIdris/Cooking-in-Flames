@@ -116,6 +116,7 @@ MonoBehaviour:
   allowedDropTags:
   - Plate
   - Trash
+  - Small Plate
   clickSound: {fileID: 8300000, guid: 1b10c19e753465544b81d26792c8d163, type: 3}
 --- !u!58 &6940529350815746142
 CircleCollider2D:
