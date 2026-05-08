@@ -32299,9 +32299,9 @@ MonoBehaviour:
   stageScale: 1
   lockedStageIndices: 00000000
   interruptMoveThreshold: 0.15
-  processingLoopClip: {fileID: 8300000, guid: 6219cc4502eda4342a56e313cf278c85, type: 3}
-  processingVolume: 1
-  completionClip: {fileID: 8300000, guid: 6219cc4502eda4342a56e313cf278c85, type: 3}
+  processingLoopClip: {fileID: 8300000, guid: e8450362976518d4d983d39177388412, type: 3}
+  processingVolume: 0.2
+  completionClip: {fileID: 0}
 --- !u!82 &8092972572652792838
 AudioSource:
   m_ObjectHideFlags: 0
