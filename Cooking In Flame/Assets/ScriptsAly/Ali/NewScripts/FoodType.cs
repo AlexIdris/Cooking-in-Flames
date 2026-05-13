@@ -9,7 +9,8 @@ public enum FoodType
     MegaComboBurger,
     MexcianBurger,
     OnionBurger,
-    SussyCheeseBurger
+    SussyCheeseBurger,
+    SimplePatty
     //BaconBurger,
     //BaconCheeseBurger,
     //BurgerWithTomato,

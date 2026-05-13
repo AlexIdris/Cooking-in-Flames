@@ -64,7 +64,8 @@ public class CustomerSpawner2 : MonoBehaviour
         FoodType.OnionBurger,
         FoodType.SussyCheeseBurger,
         FoodType.Coffee,
-        FoodType.MegaComboBurger
+        FoodType.MegaComboBurger,
+        FoodType.SimplePatty
     };
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────

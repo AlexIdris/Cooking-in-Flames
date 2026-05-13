@@ -82,6 +82,7 @@ public class CustomerMover2 : MonoBehaviour
             case FoodType.MexcianBurger:      label = "MexcianBurger";       break;
             case FoodType.OnionBurger:        label = "OnionBurger";         break;
             case FoodType.SussyCheeseBurger:  label = "SussyCheeseBurger";   break;
+            case FoodType.SimplePatty:        label = "SimplePatty";           break;
             default:                          label = food.ToString();       break;
         }
 
